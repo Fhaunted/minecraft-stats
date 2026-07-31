@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mined_iron: { label: 'Fer Miné', unit: 'num', key: 'mined_iron' },
     mined_stone: { label: 'Pierre & Abîme', unit: 'num', key: 'mined_stone' },
     mined_wood: { label: 'Bois Coupé', unit: 'num', key: 'mined_wood' },
+    totem_popped: { label: 'Totems Utilisés (Pop)', unit: 'num', key: 'totem_popped' },
     mob_kills: { label: 'Mobs Tués', unit: 'num', key: 'mob_kills' },
     deaths: { label: 'Morts', unit: 'num', key: 'deaths' },
     player_kills: { label: 'Joueurs Tués', unit: 'num', key: 'player_kills' },
@@ -63,9 +64,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const custom = stats['minecraft:custom'] || {};
       const mined = stats['minecraft:mined'] || {};
       const killed = stats['minecraft:killed'] || {};
+      const used = stats['minecraft:used'] || {};
 
       // Play time (ticks)
       const play_time = custom['minecraft:play_time'] || 0;
+
+      // Totems Popped
+      const totem_popped = used['minecraft:totem_of_undying'] || 0;
 
       // Sum all mined blocks
       let total_mined = 0;
@@ -122,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         rawStats: stats,
         metrics: {
           play_time,
+          totem_popped,
           total_mined,
           mined_diamond,
           mined_debris,
@@ -157,12 +163,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let sumPlaytime = 0;
     let sumMined = 0;
     let sumDiamonds = 0;
+    let sumTotems = 0;
     let sumKills = 0;
 
     processedPlayers.forEach(p => {
       sumPlaytime += p.metrics.play_time;
       sumMined += p.metrics.total_mined;
       sumDiamonds += p.metrics.mined_diamond;
+      sumTotems += p.metrics.totem_popped;
       sumKills += p.metrics.mob_kills;
     });
 
@@ -178,6 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setElText('avg-mined', formatNumber(Math.round(sumMined / totalCount)));
     setElText('total-diamonds', formatNumber(sumDiamonds));
     setElText('avg-diamonds', formatNumber(Math.round(sumDiamonds / totalCount)));
+    setElText('total-totems', formatNumber(sumTotems));
+    setElText('avg-totems', formatNumber(Math.round(sumTotems / totalCount)));
   }
 
   // 4. Update & Render Leaderboard Table
@@ -364,7 +374,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Populate Mob Combat List
     const combatList = document.getElementById('modal-combat-list');
-    combatList.innerHTML = '';
+    combatList.innerHTML = `
+      <div class="resource-item" style="border: 1px solid rgba(255, 215, 0, 0.3); background: rgba(255, 215, 0, 0.08);">
+        <span class="resource-name" style="font-weight:700;">🔮 Totems Utilisés (Pop)</span>
+        <span class="resource-count" style="color:#ffd700; font-weight:800;">${formatNumber(player.metrics.totem_popped)}</span>
+      </div>
+    `;
     const killedStats = player.rawStats['minecraft:killed'] || {};
     const killedArray = Object.keys(killedStats).map(key => ({
       name: key.replace('minecraft:', '').replace(/_/g, ' '),

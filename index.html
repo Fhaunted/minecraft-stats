@@ -19,11 +19,8 @@
         <span id="server-status-text">373 Joueurs Enregistrés</span>
       </div>
       <h1 class="hero-title">
-        <span class="gradient-text">MINECRAFT</span> STATS VIEWER
+        STATS DE <span class="gradient-text">KCRP</span>
       </h1>
-      <p class="hero-subtitle">
-        Analyse détaillée, classements complets et journal des Comas de votre serveur Minecraft.
-      </p>
 
       <!-- View Switcher Tabs -->
       <div class="view-switcher-container">
@@ -62,6 +59,15 @@
             <span class="stat-label">Diamants Minés</span>
             <span class="stat-value" id="total-diamonds">--</span>
             <span class="stat-sublabel">Moyenne: <strong id="avg-diamonds">--</strong> / joueur</span>
+          </div>
+        </div>
+
+        <div class="stat-card glass-card card-glow">
+          <div class="stat-icon">🔮</div>
+          <div class="stat-info">
+            <span class="stat-label">Totems Pops</span>
+            <span class="stat-value" id="total-totems">--</span>
+            <span class="stat-sublabel">Moyenne: <strong id="avg-totems">--</strong> / joueur</span>
           </div>
         </div>
 
@@ -107,6 +113,7 @@
                 <option value="mined_wood">Bois coupé (Log)</option>
               </optgroup>
               <optgroup label="⚔️ Combat & Mob">
+                <option value="totem_popped">🔮 Totems Utilisés (Pop)</option>
                 <option value="mob_kills">Mobs Tués</option>
                 <option value="deaths">Morts</option>
                 <option value="player_kills">Joueurs Tués (PvP)</option>
@@ -354,13 +361,13 @@
 
   <footer class="footer">
     <div class="container">
-      <p>Minecraft Server Stats & Coma Logs Viewer &bull; Analyse Kutils Log en direct</p>
+      <p style="font-size: 1.15rem; font-weight: 600; color: var(--text-main);">Merci à vous tous d'avoir joué et hâte qu'on se retrouve ! W à vous la team ❤️</p>
     </div>
   </footer>
 
   <!-- Include compiled data scripts -->
-  <script src="data.js?v=4"></script>
-  <script src="coma_data.js?v=4"></script>
-  <script src="app.js?v=4"></script>
+  <script src="data.js?v=6"></script>
+  <script src="coma_data.js?v=6"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
