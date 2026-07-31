@@ -626,6 +626,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
+    return null;
+  }
+
   // Modern Category & Sub-chips Engine
   const CATEGORY_GROUPS = {
     time: {
