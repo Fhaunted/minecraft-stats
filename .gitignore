@@ -1,0 +1,7 @@
+# Ignore raw Minecraft server dump folders to keep repo lightweight
+stats/
+playerdata/
+node_modules/
+usernames_cache.json
+build_data.ps1
+fetch_usernames.js

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft Server Stats & Leaderboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header / Hero Section -->
+  <header class="hero">
+    <div class="hero-overlay"></div>
+    <div class="container hero-content">
+      <div class="server-badge">
+        <span class="pulse-dot"></span>
+        <span id="server-status-text">373 Joueurs Enregistrés</span>
+      </div>
+      <h1 class="hero-title">
+        <span class="gradient-text">MINECRAFT</span> STATS VIEWER
+      </h1>
+      <p class="hero-subtitle">
+        Analyse détaillée et classements complets des joueurs de votre serveur Minecraft.
+      </p>
+
+      <!-- Global Server Averages Cards -->
+      <div class="stats-overview-grid" id="stats-overview">
+        <div class="stat-card glass-card card-glow">
+          <div class="stat-icon">⏱️</div>
+          <div class="stat-info">
+            <span class="stat-label">Temps de Jeu Total</span>
+            <span class="stat-value" id="total-playtime">--</span>
+            <span class="stat-sublabel">Moyenne: <strong id="avg-playtime">--</strong> / joueur</span>
+          </div>
+        </div>
+
+        <div class="stat-card glass-card card-glow">
+          <div class="stat-icon">⛏️</div>
+          <div class="stat-info">
+            <span class="stat-label">Blocs Minés (Total)</span>
+            <span class="stat-value" id="total-mined">--</span>
+            <span class="stat-sublabel">Moyenne: <strong id="avg-mined">--</strong> / joueur</span>
+          </div>
+        </div>
+
+        <div class="stat-card glass-card card-glow">
+          <div class="stat-icon">💎</div>
+          <div class="stat-info">
+            <span class="stat-label">Diamants Minés</span>
+            <span class="stat-value" id="total-diamonds">--</span>
+            <span class="stat-sublabel">Moyenne: <strong id="avg-diamonds">--</strong> / joueur</span>
+          </div>
+        </div>
+
+        <div class="stat-card glass-card card-glow">
+          <div class="stat-icon">⚔️</div>
+          <div class="stat-info">
+            <span class="stat-label">Mobs Tués</span>
+            <span class="stat-value" id="total-kills">--</span>
+            <span class="stat-sublabel">Moyenne: <strong id="avg-kills">--</strong> / joueur</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content & Filters -->
+  <main class="container main-content">
+    <!-- Controls Bar -->
+    <div class="controls-panel glass-card">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="player-search" placeholder="Rechercher un pseudo ou UUID..." autocomplete="off">
+      </div>
+
+      <div class="filter-group">
+        <div class="select-wrapper">
+          <label for="sort-category">Statistique :</label>
+          <select id="sort-category">
+            <optgroup label="⏱️ Temps & Activité">
+              <option value="play_time" selected>Temps de jeu (Heures)</option>
+              <option value="leave_game">Connexions au serveur</option>
+              <option value="time_since_death">Survie actuelle (Sans mourir)</option>
+            </optgroup>
+            <optgroup label="⛏️ Minage & Blocs">
+              <option value="total_mined">Total Blocs Minés</option>
+              <option value="mined_diamond">Diamants Minés (Minerai)</option>
+              <option value="mined_debris">Débris Antiques (Netherite)</option>
+              <option value="mined_emerald">Émeraudes Minées</option>
+              <option value="mined_gold">Or Miné</option>
+              <option value="mined_iron">Fer Miné</option>
+              <option value="mined_stone">Pierre & Abîme (Stone/Deepslate)</option>
+              <option value="mined_wood">Bois coupé (Log)</option>
+            </optgroup>
+            <optgroup label="⚔️ Combat & Mob">
+              <option value="mob_kills">Mobs Tués</option>
+              <option value="deaths">Morts</option>
+              <option value="player_kills">Joueurs Tués (PvP)</option>
+              <option value="damage_dealt">Dégâts Infligés</option>
+              <option value="damage_taken">Dégâts Subis</option>
+            </optgroup>
+            <optgroup label="🏃 Exploration">
+              <option value="distance_walked">Distance Parcourue (Marche/Sprint)</option>
+              <option value="fly_one_cm">Distance en Vol (Élytres)</option>
+              <option value="jump">Sauts</option>
+            </optgroup>
+            <optgroup label="📜 Autre">
+              <option value="traded_with_villager">Échanges avec Villageois</option>
+              <option value="animals_bred">Animaux Reproduits</option>
+              <option value="fish_caught">Poissons Pêchés</option>
+              <option value="enchant_item">Objets Enchantés</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="select-wrapper">
+          <label for="sort-order">Ordre :</label>
+          <select id="sort-order">
+            <option value="desc" selected>⬇️ Plus grand au plus petit (Max ➔ Min)</option>
+            <option value="asc">⬆️ Plus petit au plus grand (Min ➔ Max)</option>
+          </select>
+        </div>
+
+        <div class="checkbox-wrapper">
+          <label class="custom-checkbox">
+            <input type="checkbox" id="filter-active-only" checked>
+            <span class="checkmark"></span>
+            Masquer inactifs (&lt; 10 min)
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Filter Summary -->
+    <div class="results-header">
+      <div class="results-count">
+        Affichage de <span id="showing-count">0</span> / <span id="total-count">373</span> joueurs
+      </div>
+      <div class="avg-indicator-badge">
+        <span class="badge-icon">📊</span>
+        <span>Moyenne du serveur pour ce critère : <strong id="current-stat-avg">0</strong></span>
+      </div>
+    </div>
+
+    <!-- Leaderboard Table Grid -->
+    <div class="leaderboard-table-container glass-card">
+      <table class="leaderboard-table">
+        <thead>
+          <tr>
+            <th class="col-rank">#</th>
+            <th class="col-player">Joueur</th>
+            <th class="col-main-stat" id="table-stat-title">Temps de Jeu</th>
+            <th class="col-sub">Blocs Minés</th>
+            <th class="col-sub">Diamants</th>
+            <th class="col-sub">Mobs Tués</th>
+            <th class="col-sub">Morts</th>
+            <th class="col-diff">vs Moyenne</th>
+            <th class="col-action">Détails</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+          <!-- Dynamically populated -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination-container">
+      <button id="btn-prev-page" class="btn btn-secondary" disabled>&laquo; Précédent</button>
+      <span id="page-indicator">Page 1 / 1</span>
+      <button id="btn-next-page" class="btn btn-secondary">Suivant &raquo;</button>
+    </div>
+  </main>
+
+  <!-- Player Detailed Modal -->
+  <div id="player-modal" class="modal-backdrop hidden">
+    <div class="modal-content glass-card">
+      <button class="modal-close" id="modal-close-btn">&times;</button>
+      
+      <div class="modal-header">
+        <img id="modal-player-skin" src="" alt="Skin Joueur" class="modal-skin-img">
+        <div class="modal-player-info">
+          <h2 id="modal-player-name">Player</h2>
+          <span id="modal-player-uuid" class="uuid-badge">UUID</span>
+          <div class="modal-quick-badges" id="modal-player-badges">
+            <!-- Badges like Top Miner, Veteran... -->
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-tabs">
+        <button class="tab-btn active" data-tab="tab-overview">Vue d'ensemble</button>
+        <button class="tab-btn" data-tab="tab-mined">⛏️ Minage & Ressources</button>
+        <button class="tab-btn" data-tab="tab-combat">⚔️ Mobs & Combat</button>
+        <button class="tab-btn" data-tab="tab-exploration">🏃 Distance & Divers</button>
+      </div>
+
+      <div class="modal-tab-content">
+        <!-- Tab Overview -->
+        <div id="tab-overview" class="tab-pane active">
+          <div class="modal-grid-3">
+            <div class="mini-stat-card">
+              <span class="mini-stat-icon">⏱️</span>
+              <div>
+                <span class="mini-stat-title">Temps de Jeu</span>
+                <span class="mini-stat-val" id="m-playtime">0h</span>
+              </div>
+            </div>
+            <div class="mini-stat-card">
+              <span class="mini-stat-icon">⛏️</span>
+              <div>
+                <span class="mini-stat-title">Total Miné</span>
+                <span class="mini-stat-val" id="m-total-mined">0</span>
+              </div>
+            </div>
+            <div class="mini-stat-card">
+              <span class="mini-stat-icon">💎</span>
+              <div>
+                <span class="mini-stat-title">Diamants Minés</span>
+                <span class="mini-stat-val" id="m-diamonds">0</span>
+              </div>
+            </div>
+            <div class="mini-stat-card">
+              <span class="mini-stat-icon">⚔️</span>
+              <div>
+                <span class="mini-stat-title">Mobs Tués</span>
+                <span class="mini-stat-val" id="m-mobs">0</span>
+              </div>
+            </div>
+            <div class="mini-stat-card">
+              <span class="mini-stat-icon">☠️</span>
+              <div>
+                <span class="mini-stat-title">Morts</span>
+                <span class="mini-stat-val" id="m-deaths">0</span>
+              </div>
+            </div>
+            <div class="mini-stat-card">
+              <span class="mini-stat-icon">🏃</span>
+              <div>
+                <span class="mini-stat-title">Distance Marche</span>
+                <span class="mini-stat-val" id="m-distance">0 km</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Mined -->
+        <div id="tab-mined" class="tab-pane">
+          <h3 class="tab-section-title">Blocs & Minerais Principaux</h3>
+          <div class="resource-grid" id="modal-mined-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Tab Combat -->
+        <div id="tab-combat" class="tab-pane">
+          <h3 class="tab-section-title">Statistiques de Combat</h3>
+          <div class="resource-grid" id="modal-combat-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Tab Exploration -->
+        <div id="tab-exploration" class="tab-pane">
+          <h3 class="tab-section-title">Déplacements & Actions Sociales</h3>
+          <div class="resource-grid" id="modal-exploration-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p>Minecraft Server Stats Viewer &bull; Données générées en direct depuis vos fichiers stats JSON</p>
+    </div>
+  </footer>
+
+  <!-- Include compiled data.js -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
