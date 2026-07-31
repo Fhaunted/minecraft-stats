@@ -276,7 +276,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 4. Update & Render Leaderboard Table
   function updateLeaderboard() {
-    const categoryKey = document.getElementById('sort-category').value;
+    const sortCategoryEl = document.getElementById('sort-category');
+    const categoryKey = (sortCategoryEl && sortCategoryEl.value) || activeCategoryKey || 'play_time';
     const sortOrder = document.getElementById('sort-order').value;
     const filterActive = document.getElementById('filter-active-only').checked;
     const searchQuery = document.getElementById('player-search').value.toLowerCase().trim();
@@ -761,6 +762,21 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLeaderboard();
       });
     });
+
+    // Populate hidden sort-category options
+    const sortSel = document.getElementById('sort-category');
+    if (sortSel) {
+      sortSel.innerHTML = '';
+      Object.keys(CATEGORY_GROUPS).forEach(gKey => {
+        CATEGORY_GROUPS[gKey].items.forEach(item => {
+          const opt = document.createElement('option');
+          opt.value = item.key;
+          opt.textContent = item.label;
+          sortSel.appendChild(opt);
+        });
+      });
+      sortSel.value = activeCategoryKey;
+    }
 
     renderSubChips(activeCategoryGroup);
   }
