@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Minecraft Server Stats & Leaderboard</title>
+  <title>Minecraft Server Stats & Coma Logs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,10 +22,21 @@
         <span class="gradient-text">MINECRAFT</span> STATS VIEWER
       </h1>
       <p class="hero-subtitle">
-        Analyse détaillée et classements complets des joueurs de votre serveur Minecraft.
+        Analyse détaillée, classements complets et journal des Comas de votre serveur Minecraft.
       </p>
 
-      <!-- Global Server Averages Cards -->
+      <!-- View Switcher Tabs -->
+      <div class="view-switcher-container">
+        <button class="view-tab-btn active" id="view-tab-stats">
+          <span class="tab-icon">📊</span> Leaderboard & Stats
+        </button>
+        <button class="view-tab-btn" id="view-tab-coma">
+          <span class="tab-icon">🏥</span> Journal des Comas (Kutils Logs)
+          <span class="badge-count-pill" id="total-coma-pill">3 887</span>
+        </button>
+      </div>
+
+      <!-- Stats Overview Cards -->
       <div class="stats-overview-grid" id="stats-overview">
         <div class="stat-card glass-card card-glow">
           <div class="stat-icon">⏱️</div>
@@ -55,122 +66,189 @@
         </div>
 
         <div class="stat-card glass-card card-glow">
-          <div class="stat-icon">⚔️</div>
+          <div class="stat-icon">🏥</div>
           <div class="stat-info">
-            <span class="stat-label">Mobs Tués</span>
-            <span class="stat-value" id="total-kills">--</span>
-            <span class="stat-sublabel">Moyenne: <strong id="avg-kills">--</strong> / joueur</span>
+            <span class="stat-label">Comas Enregistrés</span>
+            <span class="stat-value" id="total-comas-card">3 887</span>
+            <span class="stat-sublabel">Logs [Kutils] [ComaLog]</span>
           </div>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- Main Content & Filters -->
+  <!-- Main Content Area -->
   <main class="container main-content">
-    <!-- Controls Bar -->
-    <div class="controls-panel glass-card">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="player-search" placeholder="Rechercher un pseudo ou UUID..." autocomplete="off">
+    <!-- SECTION 1: Stats & Leaderboard View -->
+    <div id="stats-view-section" class="view-section">
+      <div class="controls-panel glass-card">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="player-search" placeholder="Rechercher un pseudo ou UUID..." autocomplete="off">
+        </div>
+
+        <div class="filter-group">
+          <div class="select-wrapper">
+            <label for="sort-category">Statistique :</label>
+            <select id="sort-category">
+              <optgroup label="⏱️ Temps & Activité">
+                <option value="play_time" selected>Temps de jeu (Heures)</option>
+                <option value="leave_game">Connexions au serveur</option>
+                <option value="time_since_death">Survie actuelle (Sans mourir)</option>
+              </optgroup>
+              <optgroup label="⛏️ Minage & Blocs">
+                <option value="total_mined">Total Blocs Minés</option>
+                <option value="mined_diamond">Diamants Minés (Minerai)</option>
+                <option value="mined_debris">Débris Antiques (Netherite)</option>
+                <option value="mined_emerald">Émeraudes Minées</option>
+                <option value="mined_gold">Or Miné</option>
+                <option value="mined_iron">Fer Miné</option>
+                <option value="mined_stone">Pierre & Abîme (Stone/Deepslate)</option>
+                <option value="mined_wood">Bois coupé (Log)</option>
+              </optgroup>
+              <optgroup label="⚔️ Combat & Mob">
+                <option value="mob_kills">Mobs Tués</option>
+                <option value="deaths">Morts</option>
+                <option value="player_kills">Joueurs Tués (PvP)</option>
+                <option value="damage_dealt">Dégâts Infligés</option>
+                <option value="damage_taken">Dégâts Subis</option>
+              </optgroup>
+              <optgroup label="🏃 Exploration">
+                <option value="distance_walked">Distance Parcourue (Marche/Sprint)</option>
+                <option value="fly_one_cm">Distance en Vol (Élytres)</option>
+                <option value="jump">Sauts</option>
+              </optgroup>
+              <optgroup label="📜 Autre">
+                <option value="traded_with_villager">Échanges avec Villageois</option>
+                <option value="animals_bred">Animaux Reproduits</option>
+                <option value="fish_caught">Poissons Pêchés</option>
+                <option value="enchant_item">Objets Enchantés</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="select-wrapper">
+            <label for="sort-order">Ordre :</label>
+            <select id="sort-order">
+              <option value="desc" selected>⬇️ Plus grand au plus petit (Max ➔ Min)</option>
+              <option value="asc">⬆️ Plus petit au plus grand (Min ➔ Max)</option>
+            </select>
+          </div>
+
+          <div class="checkbox-wrapper">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="filter-active-only" checked>
+              <span class="checkmark"></span>
+              Masquer inactifs (&lt; 10 min)
+            </label>
+          </div>
+        </div>
       </div>
 
-      <div class="filter-group">
-        <div class="select-wrapper">
-          <label for="sort-category">Statistique :</label>
-          <select id="sort-category">
-            <optgroup label="⏱️ Temps & Activité">
-              <option value="play_time" selected>Temps de jeu (Heures)</option>
-              <option value="leave_game">Connexions au serveur</option>
-              <option value="time_since_death">Survie actuelle (Sans mourir)</option>
-            </optgroup>
-            <optgroup label="⛏️ Minage & Blocs">
-              <option value="total_mined">Total Blocs Minés</option>
-              <option value="mined_diamond">Diamants Minés (Minerai)</option>
-              <option value="mined_debris">Débris Antiques (Netherite)</option>
-              <option value="mined_emerald">Émeraudes Minées</option>
-              <option value="mined_gold">Or Miné</option>
-              <option value="mined_iron">Fer Miné</option>
-              <option value="mined_stone">Pierre & Abîme (Stone/Deepslate)</option>
-              <option value="mined_wood">Bois coupé (Log)</option>
-            </optgroup>
-            <optgroup label="⚔️ Combat & Mob">
-              <option value="mob_kills">Mobs Tués</option>
-              <option value="deaths">Morts</option>
-              <option value="player_kills">Joueurs Tués (PvP)</option>
-              <option value="damage_dealt">Dégâts Infligés</option>
-              <option value="damage_taken">Dégâts Subis</option>
-            </optgroup>
-            <optgroup label="🏃 Exploration">
-              <option value="distance_walked">Distance Parcourue (Marche/Sprint)</option>
-              <option value="fly_one_cm">Distance en Vol (Élytres)</option>
-              <option value="jump">Sauts</option>
-            </optgroup>
-            <optgroup label="📜 Autre">
-              <option value="traded_with_villager">Échanges avec Villageois</option>
-              <option value="animals_bred">Animaux Reproduits</option>
-              <option value="fish_caught">Poissons Pêchés</option>
-              <option value="enchant_item">Objets Enchantés</option>
-            </optgroup>
-          </select>
+      <div class="results-header">
+        <div class="results-count">
+          Affichage de <span id="showing-count">0</span> / <span id="total-count">373</span> joueurs
         </div>
+        <div class="avg-indicator-badge">
+          <span class="badge-icon">📊</span>
+          <span>Moyenne du serveur pour ce critère : <strong id="current-stat-avg">0</strong></span>
+        </div>
+      </div>
 
-        <div class="select-wrapper">
-          <label for="sort-order">Ordre :</label>
-          <select id="sort-order">
-            <option value="desc" selected>⬇️ Plus grand au plus petit (Max ➔ Min)</option>
-            <option value="asc">⬆️ Plus petit au plus grand (Min ➔ Max)</option>
-          </select>
-        </div>
+      <!-- Leaderboard Table -->
+      <div class="leaderboard-table-container glass-card">
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th class="col-rank">#</th>
+              <th class="col-player">Joueur</th>
+              <th class="col-main-stat" id="table-stat-title">Temps de Jeu</th>
+              <th class="col-sub">Blocs Minés</th>
+              <th class="col-sub">Diamants</th>
+              <th class="col-sub">Mobs Tués</th>
+              <th class="col-sub">Morts</th>
+              <th class="col-diff">vs Moyenne</th>
+              <th class="col-action">Détails</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
 
-        <div class="checkbox-wrapper">
-          <label class="custom-checkbox">
-            <input type="checkbox" id="filter-active-only" checked>
-            <span class="checkmark"></span>
-            Masquer inactifs (&lt; 10 min)
-          </label>
-        </div>
+      <!-- Pagination -->
+      <div class="pagination-container">
+        <button id="btn-prev-page" class="btn btn-secondary" disabled>&laquo; Précédent</button>
+        <span id="page-indicator">Page 1 / 1</span>
+        <button id="btn-next-page" class="btn btn-secondary">Suivant &raquo;</button>
       </div>
     </div>
 
-    <!-- Active Filter Summary -->
-    <div class="results-header">
-      <div class="results-count">
-        Affichage de <span id="showing-count">0</span> / <span id="total-count">373</span> joueurs
+    <!-- SECTION 2: Coma Logs & Rankings View -->
+    <div id="coma-view-section" class="view-section hidden">
+      <!-- Coma Sub-Tabs -->
+      <div class="modal-tabs" style="margin-bottom: 1.5rem;">
+        <button class="tab-btn active" id="coma-tab-attackers" data-coma-mode="attackers">⚔️ Classement Bourreaux (Comas Infligés)</button>
+        <button class="tab-btn" id="coma-tab-victims" data-coma-mode="victims">🤕 Classement Victimes (Comas Subis)</button>
+        <button class="tab-btn" id="coma-tab-feed" data-coma-mode="feed">📜 Journal Historique (3 887 Events)</button>
       </div>
-      <div class="avg-indicator-badge">
-        <span class="badge-icon">📊</span>
-        <span>Moyenne du serveur pour ce critère : <strong id="current-stat-avg">0</strong></span>
+
+      <!-- Controls for Rankings / Feed -->
+      <div class="controls-panel glass-card">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="coma-search" placeholder="Rechercher un pseudo..." autocomplete="off">
+        </div>
+
+        <div class="filter-group" id="coma-feed-filters">
+          <div class="select-wrapper">
+            <label for="coma-category-filter">Type de cause :</label>
+            <select id="coma-category-filter">
+              <option value="all" selected>Toutes les causes</option>
+              <option value="PvP (Joueur)">⚔️ PvP (Tué par un joueur)</option>
+              <option value="Mob / Entité">🧟 Mobs & Entités</option>
+              <option value="Chute">🪵 Chutes</option>
+              <option value="Noyade">🌊 Noyades</option>
+              <option value="Lave / Feu">🔥 Lave & Feu</option>
+              <option value="Environnement">🌧️ Autre Environnement</option>
+            </select>
+          </div>
+
+          <div class="select-wrapper">
+            <label for="coma-sort-order">Ordre :</label>
+            <select id="coma-sort-order">
+              <option value="newest" selected>⏱️ Plus récents / Plus grands</option>
+              <option value="oldest">⌛ Plus anciens / Plus petits</option>
+            </select>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!-- Leaderboard Table Grid -->
-    <div class="leaderboard-table-container glass-card">
-      <table class="leaderboard-table">
-        <thead>
-          <tr>
-            <th class="col-rank">#</th>
-            <th class="col-player">Joueur</th>
-            <th class="col-main-stat" id="table-stat-title">Temps de Jeu</th>
-            <th class="col-sub">Blocs Minés</th>
-            <th class="col-sub">Diamants</th>
-            <th class="col-sub">Mobs Tués</th>
-            <th class="col-sub">Morts</th>
-            <th class="col-diff">vs Moyenne</th>
-            <th class="col-action">Détails</th>
-          </tr>
-        </thead>
-        <tbody id="leaderboard-body">
-          <!-- Dynamically populated -->
-        </tbody>
-      </table>
-    </div>
+      <div class="results-header">
+        <div class="results-count">
+          Affichage de <span id="coma-showing-count">0</span> entrées (<span id="coma-mode-title">Classement des Bourreaux</span>)
+        </div>
+      </div>
 
-    <!-- Pagination Controls -->
-    <div class="pagination-container">
-      <button id="btn-prev-page" class="btn btn-secondary" disabled>&laquo; Précédent</button>
-      <span id="page-indicator">Page 1 / 1</span>
-      <button id="btn-next-page" class="btn btn-secondary">Suivant &raquo;</button>
+      <!-- Coma Table Grid -->
+      <div class="leaderboard-table-container glass-card">
+        <table class="leaderboard-table">
+          <thead id="coma-table-head">
+            <!-- Dynamically populated based on active sub-tab -->
+          </thead>
+          <tbody id="coma-table-body">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Coma Pagination Controls -->
+      <div class="pagination-container">
+        <button id="coma-btn-prev" class="btn btn-secondary" disabled>&laquo; Précédent</button>
+        <span id="coma-page-indicator">Page 1 / 1</span>
+        <button id="coma-btn-next" class="btn btn-secondary">Suivant &raquo;</button>
+      </div>
     </div>
   </main>
 
@@ -184,14 +262,13 @@
         <div class="modal-player-info">
           <h2 id="modal-player-name">Player</h2>
           <span id="modal-player-uuid" class="uuid-badge">UUID</span>
-          <div class="modal-quick-badges" id="modal-player-badges">
-            <!-- Badges like Top Miner, Veteran... -->
-          </div>
+          <div class="modal-quick-badges" id="modal-player-badges"></div>
         </div>
       </div>
 
       <div class="modal-tabs">
         <button class="tab-btn active" data-tab="tab-overview">Vue d'ensemble</button>
+        <button class="tab-btn" data-tab="tab-coma-history">🏥 Comas (<span id="modal-coma-count">0</span>)</button>
         <button class="tab-btn" data-tab="tab-mined">⛏️ Minage & Ressources</button>
         <button class="tab-btn" data-tab="tab-combat">⚔️ Mobs & Combat</button>
         <button class="tab-btn" data-tab="tab-exploration">🏃 Distance & Divers</button>
@@ -230,10 +307,10 @@
               </div>
             </div>
             <div class="mini-stat-card">
-              <span class="mini-stat-icon">☠️</span>
+              <span class="mini-stat-icon">🏥</span>
               <div>
-                <span class="mini-stat-title">Morts</span>
-                <span class="mini-stat-val" id="m-deaths">0</span>
+                <span class="mini-stat-title">Mises en Coma</span>
+                <span class="mini-stat-val" id="m-coma-total">0</span>
               </div>
             </div>
             <div class="mini-stat-card">
@@ -246,28 +323,30 @@
           </div>
         </div>
 
+        <!-- Tab Player Coma History -->
+        <div id="tab-coma-history" class="tab-pane">
+          <h3 class="tab-section-title">Historique des Comas du Joueur</h3>
+          <div class="resource-grid" id="modal-coma-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
         <!-- Tab Mined -->
         <div id="tab-mined" class="tab-pane">
           <h3 class="tab-section-title">Blocs & Minerais Principaux</h3>
-          <div class="resource-grid" id="modal-mined-list">
-            <!-- Dynamically populated -->
-          </div>
+          <div class="resource-grid" id="modal-mined-list"></div>
         </div>
 
         <!-- Tab Combat -->
         <div id="tab-combat" class="tab-pane">
           <h3 class="tab-section-title">Statistiques de Combat</h3>
-          <div class="resource-grid" id="modal-combat-list">
-            <!-- Dynamically populated -->
-          </div>
+          <div class="resource-grid" id="modal-combat-list"></div>
         </div>
 
         <!-- Tab Exploration -->
         <div id="tab-exploration" class="tab-pane">
           <h3 class="tab-section-title">Déplacements & Actions Sociales</h3>
-          <div class="resource-grid" id="modal-exploration-list">
-            <!-- Dynamically populated -->
-          </div>
+          <div class="resource-grid" id="modal-exploration-list"></div>
         </div>
       </div>
     </div>
@@ -275,12 +354,13 @@
 
   <footer class="footer">
     <div class="container">
-      <p>Minecraft Server Stats Viewer &bull; Données générées en direct depuis vos fichiers stats JSON</p>
+      <p>Minecraft Server Stats & Coma Logs Viewer &bull; Analyse Kutils Log en direct</p>
     </div>
   </footer>
 
-  <!-- Include compiled data.js -->
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <!-- Include compiled data scripts -->
+  <script src="data.js?v=3"></script>
+  <script src="coma_data.js?v=3"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

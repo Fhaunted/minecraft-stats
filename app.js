@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     calculateServerOverview();
     setupEventListeners();
     updateLeaderboard();
+    initComaData();
   }
 
   // 2. Extract and Process Player Stats
@@ -165,18 +166,18 @@ document.addEventListener('DOMContentLoaded', () => {
       sumKills += p.metrics.mob_kills;
     });
 
-    document.getElementById('server-status-text').textContent = `${processedPlayers.length} Joueurs Enregistrés`;
-    document.getElementById('total-playtime').textContent = formatPlaytime(sumPlaytime);
-    document.getElementById('avg-playtime').textContent = formatPlaytime(Math.round(sumPlaytime / totalCount));
+    const setElText = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
 
-    document.getElementById('total-mined').textContent = formatNumber(sumMined);
-    document.getElementById('avg-mined').textContent = formatNumber(Math.round(sumMined / totalCount));
-
-    document.getElementById('total-diamonds').textContent = formatNumber(sumDiamonds);
-    document.getElementById('avg-diamonds').textContent = formatNumber(Math.round(sumDiamonds / totalCount));
-
-    document.getElementById('total-kills').textContent = formatNumber(sumKills);
-    document.getElementById('avg-kills').textContent = formatNumber(Math.round(sumKills / totalCount));
+    setElText('server-status-text', `${processedPlayers.length} Joueurs Enregistrés`);
+    setElText('total-playtime', formatPlaytime(sumPlaytime));
+    setElText('avg-playtime', formatPlaytime(Math.round(sumPlaytime / totalCount)));
+    setElText('total-mined', formatNumber(sumMined));
+    setElText('avg-mined', formatNumber(Math.round(sumMined / totalCount)));
+    setElText('total-diamonds', formatNumber(sumDiamonds));
+    setElText('avg-diamonds', formatNumber(Math.round(sumDiamonds / totalCount)));
   }
 
   // 4. Update & Render Leaderboard Table
@@ -420,6 +421,30 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
+    // Populate Player Coma History
+    const comaCount = getPlayerComaCount(player.name);
+    document.getElementById('m-coma-total').textContent = formatNumber(comaCount);
+    document.getElementById('modal-coma-count').textContent = comaCount;
+
+    const comaList = document.getElementById('modal-coma-list');
+    if (comaCount > 0) {
+      const playerComaEvents = getPlayerComaEvents(player.name);
+      comaList.innerHTML = '';
+      playerComaEvents.slice(0, 30).forEach(ev => {
+        comaList.innerHTML += `
+          <div class="resource-item">
+            <span class="resource-name">${ev.date} ${ev.time}</span>
+            <span class="resource-count" style="color: #ff4757;">${escapeHtml(ev.cause)}</span>
+          </div>
+        `;
+      });
+      if (playerComaEvents.length > 30) {
+        comaList.innerHTML += `<div class="resource-item"><span class="resource-name" style="color:var(--text-dim);">...et ${playerComaEvents.length - 30} de plus</span></div>`;
+      }
+    } else {
+      comaList.innerHTML = `<div class="resource-item"><span class="resource-name">Aucun coma enregistré 🎉</span></div>`;
+    }
+
     document.getElementById('player-modal').classList.remove('hidden');
   }
 
@@ -551,10 +576,390 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById(tabId).classList.add('active');
       });
     });
+
+    // =========================================
+    // VIEW SWITCHER: Stats vs Coma Logs
+    // =========================================
+    document.getElementById('view-tab-stats').addEventListener('click', () => {
+      document.getElementById('view-tab-stats').classList.add('active');
+      document.getElementById('view-tab-coma').classList.remove('active');
+      document.getElementById('stats-view-section').classList.remove('hidden');
+      document.getElementById('coma-view-section').classList.add('hidden');
+      document.getElementById('stats-overview').style.display = '';
+    });
+
+    document.getElementById('view-tab-coma').addEventListener('click', () => {
+      document.getElementById('view-tab-coma').classList.add('active');
+      document.getElementById('view-tab-stats').classList.remove('active');
+      document.getElementById('coma-view-section').classList.remove('hidden');
+      document.getElementById('stats-view-section').classList.add('hidden');
+      document.getElementById('stats-overview').style.display = 'none';
+      updateComaTable();
+    });
+
+    // =========================================
+    // COMA VIEW: Sub-Tabs & Controls
+    // =========================================
+    document.querySelectorAll('[data-coma-mode]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('[data-coma-mode]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        comaMode = btn.getAttribute('data-coma-mode');
+        comaPage = 1;
+
+        // Toggle feed filters visibility
+        const feedFilters = document.getElementById('coma-feed-filters');
+        if (feedFilters) {
+          feedFilters.style.display = comaMode === 'feed' ? 'flex' : 'flex';
+        }
+
+        updateComaTable();
+      });
+    });
+
+    document.getElementById('coma-search').addEventListener('input', () => {
+      comaPage = 1;
+      updateComaTable();
+    });
+
+    document.getElementById('coma-category-filter').addEventListener('change', () => {
+      comaPage = 1;
+      updateComaTable();
+    });
+
+    document.getElementById('coma-sort-order').addEventListener('change', () => {
+      comaPage = 1;
+      updateComaTable();
+    });
+
+    document.getElementById('coma-btn-prev').addEventListener('click', () => {
+      if (comaPage > 1) {
+        comaPage--;
+        updateComaTable();
+      }
+    });
+
+    document.getElementById('coma-btn-next').addEventListener('click', () => {
+      let maxItems = 0;
+      if (comaMode === 'attackers') maxItems = filteredComaAttackers.length;
+      else if (comaMode === 'victims') maxItems = filteredComaVictims.length;
+      else maxItems = filteredComaEvents.length;
+
+      const totalPages = Math.ceil(maxItems / comaPageSize) || 1;
+      if (comaPage < totalPages) {
+        comaPage++;
+        updateComaTable();
+      }
+    });
   }
 
   function closeModal() {
     document.getElementById('player-modal').classList.add('hidden');
+  }
+
+  // =========================================
+  // 8. COMA LOGS & RANKINGS ENGINE
+  // =========================================
+  let comaMode = 'attackers'; // 'attackers', 'victims', 'feed'
+  let comaPage = 1;
+  const comaPageSize = 25;
+  let filteredComaEvents = [];
+  let filteredComaAttackers = [];
+  let filteredComaVictims = [];
+
+  function initComaData() {
+    if (typeof COMA_DATA === 'undefined') return;
+
+    const totalEl = document.getElementById('total-coma-pill');
+    if (totalEl) totalEl.textContent = formatNumber(COMA_DATA.totalEvents);
+
+    const cardEl = document.getElementById('total-comas-card');
+    if (cardEl) cardEl.textContent = formatNumber(COMA_DATA.totalEvents);
+  }
+
+  function updateComaTable() {
+    if (typeof COMA_DATA === 'undefined') return;
+
+    const search = document.getElementById('coma-search').value.toLowerCase().trim();
+    const categoryFilter = document.getElementById('coma-category-filter').value;
+    const sortOrder = document.getElementById('coma-sort-order').value;
+
+    const thead = document.getElementById('coma-table-head');
+    const tbody = document.getElementById('coma-table-body');
+    const modeTitle = document.getElementById('coma-mode-title');
+
+    tbody.innerHTML = '';
+
+    // MODE 1: ATTACKERS (BOURREAUX PvP)
+    if (comaMode === 'attackers') {
+      if (modeTitle) modeTitle.textContent = "Classement Complet des Bourreaux PvP";
+
+      thead.innerHTML = `
+        <tr>
+          <th style="width: 70px;">#</th>
+          <th class="col-player">Joueur (Bourreau PvP)</th>
+          <th>Comas Infligés</th>
+          <th>% du total PvP</th>
+          <th>Action</th>
+        </tr>
+      `;
+
+      filteredComaAttackers = (COMA_DATA.topAttackers || []).filter(item => {
+        if (search && !item.name.toLowerCase().includes(search)) return false;
+        return true;
+      });
+
+      if (sortOrder === 'oldest') {
+        filteredComaAttackers.sort((a, b) => a.count - b.count);
+      } else {
+        filteredComaAttackers.sort((a, b) => b.count - a.count);
+      }
+
+      const totalPages = Math.ceil(filteredComaAttackers.length / comaPageSize) || 1;
+      if (comaPage > totalPages) comaPage = totalPages;
+      if (comaPage < 1) comaPage = 1;
+
+      const start = (comaPage - 1) * comaPageSize;
+      const pageItems = filteredComaAttackers.slice(start, start + comaPageSize);
+
+      document.getElementById('coma-showing-count').textContent = filteredComaAttackers.length;
+      document.getElementById('coma-page-indicator').textContent = `Page ${comaPage} / ${totalPages}`;
+      document.getElementById('coma-btn-prev').disabled = comaPage <= 1;
+      document.getElementById('coma-btn-next').disabled = comaPage >= totalPages;
+
+      if (pageItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-muted);">Aucun bourreau trouvé.</td></tr>`;
+        return;
+      }
+
+      const totalPvpComas = filteredComaAttackers.reduce((acc, curr) => acc + curr.count, 0) || 1;
+
+      pageItems.forEach((item, idx) => {
+        const rank = start + idx + 1;
+        let rankBadge = 'rank-other';
+        if (rank === 1) rankBadge = 'rank-1';
+        else if (rank === 2) rankBadge = 'rank-2';
+        else if (rank === 3) rankBadge = 'rank-3';
+
+        const pct = ((item.count / totalPvpComas) * 100).toFixed(1);
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+          <td style="text-align:center;">
+            <span class="rank-badge ${rankBadge}">${rank}</span>
+          </td>
+          <td>
+            <div class="player-cell">
+              <img class="player-avatar" src="https://mc-heads.net/avatar/${escapeHtml(item.name)}/64" alt="" loading="lazy" onerror="this.src='https://crafatar.com/avatars/steve?size=64'" style="width:32px; height:32px;">
+              <span class="player-name" style="font-weight: 700;">${escapeHtml(item.name)}</span>
+            </div>
+          </td>
+          <td>
+            <span style="color: #ff4757; font-weight: 800; font-family: var(--font-mono); font-size: 1.05rem;">⚔️ ${formatNumber(item.count)}</span>
+          </td>
+          <td>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <div style="width:80px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
+                <div style="width:${pct}%; height:100%; background:#ff4757;"></div>
+              </div>
+              <span style="font-size:0.85rem; color:var(--text-muted); font-family:var(--font-mono);">${pct}%</span>
+            </div>
+          </td>
+          <td>
+            <button class="btn btn-secondary btn-detail" onclick="document.getElementById('coma-search').value='${escapeHtml(item.name)}'; document.getElementById('coma-tab-feed').click();" style="padding:0.35rem 0.75rem; font-size:0.8rem;">
+              🔍 Voir Logs
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      return;
+    }
+
+    // MODE 2: VICTIMS (COMAS SUBIS)
+    if (comaMode === 'victims') {
+      if (modeTitle) modeTitle.textContent = "Classement Complet des Victimes (Comas Subis)";
+
+      thead.innerHTML = `
+        <tr>
+          <th style="width: 70px;">#</th>
+          <th class="col-player">Joueur (Victime en Coma)</th>
+          <th>Comas Subis</th>
+          <th>% du total</th>
+          <th>Action</th>
+        </tr>
+      `;
+
+      filteredComaVictims = (COMA_DATA.topVictims || []).filter(item => {
+        if (search && !item.name.toLowerCase().includes(search)) return false;
+        return true;
+      });
+
+      if (sortOrder === 'oldest') {
+        filteredComaVictims.sort((a, b) => a.count - b.count);
+      } else {
+        filteredComaVictims.sort((a, b) => b.count - a.count);
+      }
+
+      const totalPages = Math.ceil(filteredComaVictims.length / comaPageSize) || 1;
+      if (comaPage > totalPages) comaPage = totalPages;
+      if (comaPage < 1) comaPage = 1;
+
+      const start = (comaPage - 1) * comaPageSize;
+      const pageItems = filteredComaVictims.slice(start, start + comaPageSize);
+
+      document.getElementById('coma-showing-count').textContent = filteredComaVictims.length;
+      document.getElementById('coma-page-indicator').textContent = `Page ${comaPage} / ${totalPages}`;
+      document.getElementById('coma-btn-prev').disabled = comaPage <= 1;
+      document.getElementById('coma-btn-next').disabled = comaPage >= totalPages;
+
+      if (pageItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-muted);">Aucune victime trouvée.</td></tr>`;
+        return;
+      }
+
+      const totalComaEvents = COMA_DATA.totalEvents || 1;
+
+      pageItems.forEach((item, idx) => {
+        const rank = start + idx + 1;
+        let rankBadge = 'rank-other';
+        if (rank === 1) rankBadge = 'rank-1';
+        else if (rank === 2) rankBadge = 'rank-2';
+        else if (rank === 3) rankBadge = 'rank-3';
+
+        const pct = ((item.count / totalComaEvents) * 100).toFixed(1);
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+          <td style="text-align:center;">
+            <span class="rank-badge ${rankBadge}">${rank}</span>
+          </td>
+          <td>
+            <div class="player-cell">
+              <img class="player-avatar" src="https://mc-heads.net/avatar/${escapeHtml(item.name)}/64" alt="" loading="lazy" onerror="this.src='https://crafatar.com/avatars/steve?size=64'" style="width:32px; height:32px;">
+              <span class="player-name" style="font-weight: 700;">${escapeHtml(item.name)}</span>
+            </div>
+          </td>
+          <td>
+            <span style="color: #ffa502; font-weight: 800; font-family: var(--font-mono); font-size: 1.05rem;">🤕 ${formatNumber(item.count)}</span>
+          </td>
+          <td>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <div style="width:80px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
+                <div style="width:${pct}%; height:100%; background:#ffa502;"></div>
+              </div>
+              <span style="font-size:0.85rem; color:var(--text-muted); font-family:var(--font-mono);">${pct}%</span>
+            </div>
+          </td>
+          <td>
+            <button class="btn btn-secondary btn-detail" onclick="document.getElementById('coma-search').value='${escapeHtml(item.name)}'; document.getElementById('coma-tab-feed').click();" style="padding:0.35rem 0.75rem; font-size:0.8rem;">
+              🔍 Voir Logs
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      return;
+    }
+
+    // MODE 3: CHRONOLOGICAL FEED (LOGS)
+    if (modeTitle) modeTitle.textContent = "Journal Historique Chronologique";
+
+    thead.innerHTML = `
+      <tr>
+        <th style="width: 70px;">#</th>
+        <th style="width: 180px;">Date & Heure</th>
+        <th class="col-player">Joueur en Coma</th>
+        <th>Cause / Attaquant</th>
+        <th style="width: 160px;">Catégorie</th>
+      </tr>
+    `;
+
+    filteredComaEvents = COMA_DATA.events.filter(ev => {
+      if (categoryFilter !== 'all' && ev.category !== categoryFilter) return false;
+      if (search) {
+        const victimMatch = ev.victim.toLowerCase().includes(search);
+        const causeMatch = ev.cause.toLowerCase().includes(search);
+        if (!victimMatch && !causeMatch) return false;
+      }
+      return true;
+    });
+
+    if (sortOrder === 'oldest') {
+      filteredComaEvents.sort((a, b) => a.dateTime.localeCompare(b.dateTime));
+    } else {
+      filteredComaEvents.sort((a, b) => b.dateTime.localeCompare(a.dateTime));
+    }
+
+    const totalPages = Math.ceil(filteredComaEvents.length / comaPageSize) || 1;
+    if (comaPage > totalPages) comaPage = totalPages;
+    if (comaPage < 1) comaPage = 1;
+
+    const start = (comaPage - 1) * comaPageSize;
+    const pageEvents = filteredComaEvents.slice(start, start + comaPageSize);
+
+    document.getElementById('coma-showing-count').textContent = filteredComaEvents.length;
+    document.getElementById('coma-page-indicator').textContent = `Page ${comaPage} / ${totalPages}`;
+    document.getElementById('coma-btn-prev').disabled = comaPage <= 1;
+    document.getElementById('coma-btn-next').disabled = comaPage >= totalPages;
+
+    if (pageEvents.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-muted);">Aucun événement de coma trouvé.</td></tr>`;
+      return;
+    }
+
+    pageEvents.forEach((ev, idx) => {
+      const globalIdx = start + idx + 1;
+      const tr = document.createElement('tr');
+
+      let catColor = 'var(--text-muted)';
+      let catIcon = '🌧️';
+      if (ev.category === 'PvP (Joueur)') { catColor = '#ff4757'; catIcon = '⚔️'; }
+      else if (ev.category === 'Mob / Entité') { catColor = '#ffa502'; catIcon = '🧟'; }
+      else if (ev.category === 'Chute') { catColor = '#ff6348'; catIcon = '🪵'; }
+      else if (ev.category === 'Noyade') { catColor = '#1e90ff'; catIcon = '🌊'; }
+      else if (ev.category === 'Lave / Feu') { catColor = '#ff4500'; catIcon = '🔥'; }
+
+      tr.innerHTML = `
+        <td style="text-align:center;">
+          <span class="rank-badge rank-other">${globalIdx}</span>
+        </td>
+        <td>
+          <span style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted);">${escapeHtml(ev.date)}</span><br>
+          <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-dim);">${escapeHtml(ev.time)}</span>
+        </td>
+        <td>
+          <div class="player-cell">
+            <img class="player-avatar" src="https://mc-heads.net/avatar/${escapeHtml(ev.victim)}/64" alt="" loading="lazy" onerror="this.src='https://crafatar.com/avatars/steve?size=64'" style="width:32px; height:32px;">
+            <span class="player-name" style="font-weight: 700;">${escapeHtml(ev.victim)}</span>
+          </div>
+        </td>
+        <td style="color: var(--text-main); font-size: 0.9rem;">${escapeHtml(ev.cause)}</td>
+        <td>
+          <span style="
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            background: ${catColor}22; color: ${catColor};
+            border: 1px solid ${catColor}44;
+            padding: 0.25rem 0.7rem; border-radius: 50px;
+            font-size: 0.8rem; font-weight: 600;
+          ">${catIcon} ${escapeHtml(ev.category)}</span>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Get coma events for a specific player name
+  function getPlayerComaEvents(playerName) {
+    if (typeof COMA_DATA === 'undefined') return [];
+    return COMA_DATA.events.filter(ev =>
+      ev.victim.toLowerCase() === playerName.toLowerCase()
+    );
+  }
+
+  function getPlayerComaCount(playerName) {
+    if (typeof COMA_DATA === 'undefined' || !COMA_DATA.playerComaCounts) return 0;
+    return COMA_DATA.playerComaCounts[playerName] || 0;
   }
 
   // Helper Utility Functions
