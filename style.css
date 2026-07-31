@@ -205,8 +205,8 @@ body {
 
 .stat-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0, 230, 153, 0.15);
-  border-color: rgba(0, 230, 153, 0.4);
+  box-shadow: 0 12px 30px rgba(0, 240, 255, 0.2);
+  border-color: rgba(0, 240, 255, 0.4);
 }
 
 .stat-icon {
@@ -297,7 +297,7 @@ body {
 
 .search-box input:focus {
   border-color: var(--primary-accent);
-  box-shadow: 0 0 0 3px rgba(0, 230, 153, 0.15);
+  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.2);
 }
 
 .filter-group {
@@ -539,9 +539,9 @@ body {
 }
 
 .diff-positive {
-  background: rgba(0, 230, 153, 0.12);
+  background: rgba(0, 240, 255, 0.12);
   color: var(--primary-accent);
-  border: 1px solid rgba(0, 230, 153, 0.25);
+  border: 1px solid rgba(0, 240, 255, 0.3);
 }
 
 .diff-negative {
@@ -638,7 +638,7 @@ body {
   position: relative;
   padding: 2rem;
   background: #111522;
-  border: 1px solid rgba(0, 230, 153, 0.2);
+  border: 1px solid rgba(0, 240, 255, 0.25);
 }
 
 .modal-close {

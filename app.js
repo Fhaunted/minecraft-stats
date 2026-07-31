@@ -17,27 +17,44 @@ document.addEventListener('DOMContentLoaded', () => {
     play_time: { label: 'Temps de jeu', unit: 'time', key: 'play_time' },
     leave_game: { label: 'Connexions', unit: 'num', key: 'leave_game' },
     time_since_death: { label: 'Survie Actuelle', unit: 'time', key: 'time_since_death' },
+    time_since_rest: { label: 'Temps Sans Dormir', unit: 'time', key: 'time_since_rest' },
     total_mined: { label: 'Total Miné', unit: 'num', key: 'total_mined' },
     mined_diamond: { label: 'Diamants Minés', unit: 'num', key: 'mined_diamond' },
     mined_debris: { label: 'Débris Antiques', unit: 'num', key: 'mined_debris' },
     mined_emerald: { label: 'Émeraudes', unit: 'num', key: 'mined_emerald' },
     mined_gold: { label: 'Or Miné', unit: 'num', key: 'mined_gold' },
     mined_iron: { label: 'Fer Miné', unit: 'num', key: 'mined_iron' },
+    mined_copper: { label: 'Cuivre Miné', unit: 'num', key: 'mined_copper' },
+    mined_lapis: { label: 'Lapis-Lazuli', unit: 'num', key: 'mined_lapis' },
+    mined_redstone: { label: 'Redstone Minée', unit: 'num', key: 'mined_redstone' },
+    mined_coal: { label: 'Charbon Miné', unit: 'num', key: 'mined_coal' },
     mined_stone: { label: 'Pierre & Abîme', unit: 'num', key: 'mined_stone' },
+    mined_obsidian: { label: 'Obsidienne', unit: 'num', key: 'mined_obsidian' },
     mined_wood: { label: 'Bois Coupé', unit: 'num', key: 'mined_wood' },
     totem_popped: { label: 'Totems Utilisés (Pop)', unit: 'num', key: 'totem_popped' },
+    golden_apple: { label: 'Pommes Dorées', unit: 'num', key: 'golden_apple' },
+    enchanted_golden_apple: { label: 'Pommes Cheat (Notch)', unit: 'num', key: 'enchanted_golden_apple' },
+    ender_pearl: { label: 'Perles de l\'Ender', unit: 'num', key: 'ender_pearl' },
     mob_kills: { label: 'Mobs Tués', unit: 'num', key: 'mob_kills' },
-    deaths: { label: 'Morts', unit: 'num', key: 'deaths' },
+    deaths: { label: 'Morts Total', unit: 'num', key: 'deaths' },
     player_kills: { label: 'Joueurs Tués', unit: 'num', key: 'player_kills' },
     damage_dealt: { label: 'Dégâts Infligés', unit: 'num', key: 'damage_dealt' },
     damage_taken: { label: 'Dégâts Subis', unit: 'num', key: 'damage_taken' },
+    damage_resisted: { label: 'Dégâts Résistés', unit: 'num', key: 'damage_resisted' },
+    damage_blocked: { label: 'Dégâts Parés', unit: 'num', key: 'damage_blocked' },
     distance_walked: { label: 'Distance Marche', unit: 'km', key: 'distance_walked' },
     fly_one_cm: { label: 'Distance Vol', unit: 'km', key: 'fly_one_cm' },
+    swim_one_cm: { label: 'Distance Nage', unit: 'km', key: 'swim_one_cm' },
+    boat_one_cm: { label: 'Distance Bateau', unit: 'km', key: 'boat_one_cm' },
+    horse_one_cm: { label: 'Distance Cheval', unit: 'km', key: 'horse_one_cm' },
     jump: { label: 'Sauts', unit: 'num', key: 'jump' },
     traded_with_villager: { label: 'Échanges Villageois', unit: 'num', key: 'traded_with_villager' },
     animals_bred: { label: 'Animaux Reproduits', unit: 'num', key: 'animals_bred' },
     fish_caught: { label: 'Poissons Pêchés', unit: 'num', key: 'fish_caught' },
-    enchant_item: { label: 'Enchantements', unit: 'num', key: 'enchant_item' }
+    enchant_item: { label: 'Enchantements', unit: 'num', key: 'enchant_item' },
+    total_crafted: { label: 'Items Craftés', unit: 'num', key: 'total_crafted' },
+    total_picked_up: { label: 'Items Ramassés', unit: 'num', key: 'total_picked_up' },
+    drop: { label: 'Items Jetés', unit: 'num', key: 'drop' }
   };
 
   // 1. Initialize Application
@@ -65,12 +82,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const mined = stats['minecraft:mined'] || {};
       const killed = stats['minecraft:killed'] || {};
       const used = stats['minecraft:used'] || {};
+      const crafted = stats['minecraft:crafted'] || {};
+      const picked_up = stats['minecraft:picked_up'] || {};
 
-      // Play time (ticks)
+      // Play time & survival
       const play_time = custom['minecraft:play_time'] || 0;
+      const leave_game = custom['minecraft:leave_game'] || 0;
+      const time_since_death = custom['minecraft:time_since_death'] || 0;
+      const time_since_rest = custom['minecraft:time_since_rest'] || 0;
 
-      // Totems Popped
+      // Used Items
       const totem_popped = used['minecraft:totem_of_undying'] || 0;
+      const golden_apple = used['minecraft:golden_apple'] || 0;
+      const enchanted_golden_apple = used['minecraft:enchanted_golden_apple'] || 0;
+      const ender_pearl = used['minecraft:ender_pearl'] || 0;
 
       // Sum all mined blocks
       let total_mined = 0;
@@ -84,7 +109,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const mined_emerald = (mined['minecraft:emerald_ore'] || 0) + (mined['minecraft:deepslate_emerald_ore'] || 0);
       const mined_gold = (mined['minecraft:gold_ore'] || 0) + (mined['minecraft:deepslate_gold_ore'] || 0);
       const mined_iron = (mined['minecraft:iron_ore'] || 0) + (mined['minecraft:deepslate_iron_ore'] || 0);
+      const mined_copper = (mined['minecraft:copper_ore'] || 0) + (mined['minecraft:deepslate_copper_ore'] || 0);
+      const mined_lapis = (mined['minecraft:lapis_ore'] || 0) + (mined['minecraft:deepslate_lapis_ore'] || 0);
+      const mined_redstone = (mined['minecraft:redstone_ore'] || 0) + (mined['minecraft:deepslate_redstone_ore'] || 0);
+      const mined_coal = (mined['minecraft:coal_ore'] || 0) + (mined['minecraft:deepslate_coal_ore'] || 0);
       const mined_stone = (mined['minecraft:stone'] || 0) + (mined['minecraft:deepslate'] || 0) + (mined['minecraft:cobblestone'] || 0);
+      const mined_obsidian = mined['minecraft:obsidian'] || 0;
 
       // Wood logs sum
       let mined_wood = 0;
@@ -100,6 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const player_kills = custom['minecraft:player_kills'] || 0;
       const damage_dealt = custom['minecraft:damage_dealt'] || 0;
       const damage_taken = custom['minecraft:damage_taken'] || 0;
+      const damage_resisted = custom['minecraft:damage_resisted'] || 0;
+      const damage_blocked = custom['minecraft:damage_blocked_by_shield'] || 0;
 
       // Distance (cm to km)
       const walk_one_cm = custom['minecraft:walk_one_cm'] || 0;
@@ -107,15 +139,24 @@ document.addEventListener('DOMContentLoaded', () => {
       const crouch_one_cm = custom['minecraft:crouch_one_cm'] || 0;
       const distance_walked = Number(((walk_one_cm + sprint_one_cm + crouch_one_cm) / 100000).toFixed(2));
       const fly_one_cm = Number(((custom['minecraft:fly_one_cm'] || 0) / 100000).toFixed(2));
+      const swim_one_cm = Number(((custom['minecraft:swim_one_cm'] || 0) / 100000).toFixed(2));
+      const boat_one_cm = Number(((custom['minecraft:boat_one_cm'] || 0) / 100000).toFixed(2));
+      const horse_one_cm = Number(((custom['minecraft:horse_one_cm'] || 0) / 100000).toFixed(2));
 
       // Other stats
-      const leave_game = custom['minecraft:leave_game'] || 0;
-      const time_since_death = custom['minecraft:time_since_death'] || 0;
       const jump = custom['minecraft:jump'] || 0;
+      const drop = custom['minecraft:drop'] || 0;
       const traded_with_villager = custom['minecraft:traded_with_villager'] || 0;
       const animals_bred = custom['minecraft:animals_bred'] || 0;
       const fish_caught = custom['minecraft:fish_caught'] || 0;
       const enchant_item = custom['minecraft:enchant_item'] || 0;
+
+      // Crafted & Picked up total sums
+      let total_crafted = 0;
+      for (const k in crafted) total_crafted += crafted[k] || 0;
+
+      let total_picked_up = 0;
+      for (const k in picked_up) total_picked_up += picked_up[k] || 0;
 
       // Default name fallback
       const cachedName = usernameCache[uuid];
@@ -127,29 +168,46 @@ document.addEventListener('DOMContentLoaded', () => {
         rawStats: stats,
         metrics: {
           play_time,
+          leave_game,
+          time_since_death,
+          time_since_rest,
           totem_popped,
+          golden_apple,
+          enchanted_golden_apple,
+          ender_pearl,
           total_mined,
           mined_diamond,
           mined_debris,
           mined_emerald,
           mined_gold,
           mined_iron,
+          mined_copper,
+          mined_lapis,
+          mined_redstone,
+          mined_coal,
           mined_stone,
+          mined_obsidian,
           mined_wood,
           mob_kills,
           deaths,
           player_kills,
           damage_dealt,
           damage_taken,
+          damage_resisted,
+          damage_blocked,
           distance_walked,
           fly_one_cm,
+          swim_one_cm,
+          boat_one_cm,
+          horse_one_cm,
           jump,
           traded_with_villager,
           animals_bred,
           fish_caught,
           enchant_item,
-          leave_game,
-          time_since_death
+          total_crafted,
+          total_picked_up,
+          drop
         }
       };
     });

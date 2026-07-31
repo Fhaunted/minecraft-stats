@@ -97,37 +97,57 @@
           <div class="select-wrapper">
             <label for="sort-category">Statistique :</label>
             <select id="sort-category">
-              <optgroup label="⏱️ Temps & Activité">
+              <optgroup label="⏱️ Temps & Survie">
                 <option value="play_time" selected>Temps de jeu (Heures)</option>
                 <option value="leave_game">Connexions au serveur</option>
                 <option value="time_since_death">Survie actuelle (Sans mourir)</option>
+                <option value="time_since_rest">Temps sans dormir</option>
               </optgroup>
-              <optgroup label="⛏️ Minage & Blocs">
+              <optgroup label="⛏️ Minage & Minerai">
                 <option value="total_mined">Total Blocs Minés</option>
-                <option value="mined_diamond">Diamants Minés (Minerai)</option>
+                <option value="mined_diamond">Diamants Minés</option>
                 <option value="mined_debris">Débris Antiques (Netherite)</option>
                 <option value="mined_emerald">Émeraudes Minées</option>
                 <option value="mined_gold">Or Miné</option>
                 <option value="mined_iron">Fer Miné</option>
+                <option value="mined_copper">Cuivre Miné</option>
+                <option value="mined_lapis">Lapis-Lazuli Miné</option>
+                <option value="mined_redstone">Redstone Minée</option>
+                <option value="mined_coal">Charbon Miné</option>
                 <option value="mined_stone">Pierre & Abîme (Stone/Deepslate)</option>
-                <option value="mined_wood">Bois coupé (Log)</option>
+                <option value="mined_obsidian">Obsidienne Minée</option>
+                <option value="mined_wood">Bois coupé (Logs)</option>
               </optgroup>
-              <optgroup label="⚔️ Combat & Mob">
-                <option value="totem_popped">🔮 Totems Utilisés (Pop)</option>
+              <optgroup label="⚔️ Combat, Items & Stuff">
+                <option value="totem_popped">🔮 Totems Utilisés (Pops)</option>
+                <option value="golden_apple">🍎 Pommes Dorées Consommées</option>
+                <option value="enchanted_golden_apple">✨ Pommes Cheat (Notch Apple)</option>
+                <option value="ender_pearl">🔮 Perles de l'Ender Lancées</option>
                 <option value="mob_kills">Mobs Tués</option>
-                <option value="deaths">Morts</option>
+                <option value="deaths">Morts Total</option>
                 <option value="player_kills">Joueurs Tués (PvP)</option>
                 <option value="damage_dealt">Dégâts Infligés</option>
                 <option value="damage_taken">Dégâts Subis</option>
+                <option value="damage_resisted">Dégâts Résistés</option>
+                <option value="damage_blocked">Dégâts Bloqués au Bouclier</option>
               </optgroup>
-              <optgroup label="🏃 Exploration">
-                <option value="distance_walked">Distance Parcourue (Marche/Sprint)</option>
-                <option value="fly_one_cm">Distance en Vol (Élytres)</option>
-                <option value="jump">Sauts</option>
+              <optgroup label="🏃 Déplacement & Transport">
+                <option value="distance_walked">Distance Marche / Sprint (km)</option>
+                <option value="fly_one_cm">Distance Vol Élytres (km)</option>
+                <option value="swim_one_cm">Distance Nage (km)</option>
+                <option value="boat_one_cm">Distance Bateau (km)</option>
+                <option value="horse_one_cm">Distance Cheval (km)</option>
+                <option value="jump">Nombre de Sauts</option>
               </optgroup>
-              <optgroup label="📜 Autre">
-                <option value="traded_with_villager">Échanges avec Villageois</option>
+              <optgroup label="🛠️ Artisanat & Commerce">
+                <option value="traded_with_villager">Échanges Villageois</option>
                 <option value="animals_bred">Animaux Reproduits</option>
+                <option value="fish_caught">Poissons Pêchés</option>
+                <option value="enchant_item">Objets Enchantés</option>
+                <option value="total_crafted">Items Craftés</option>
+                <option value="total_picked_up">Items Ramassés</option>
+                <option value="drop">Items Jetés</option>
+              </optgroup>
                 <option value="fish_caught">Poissons Pêchés</option>
                 <option value="enchant_item">Objets Enchantés</option>
               </optgroup>
@@ -366,8 +386,8 @@
   </footer>
 
   <!-- Include compiled data scripts -->
-  <script src="data.js?v=6"></script>
-  <script src="coma_data.js?v=6"></script>
-  <script src="app.js?v=6"></script>
+  <script src="data.js?v=7"></script>
+  <script src="coma_data.js?v=7"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
