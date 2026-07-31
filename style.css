@@ -267,6 +267,75 @@ body {
   gap: 1.25rem;
 }
 
+/* Modern Category Selector UI */
+.category-tabs-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.8rem;
+}
+
+.cat-tab-btn {
+  padding: 0.6rem 1.25rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-family: var(--font-main);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.cat-tab-btn:hover {
+  background: rgba(0, 240, 255, 0.1);
+  color: var(--text-main);
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+.cat-tab-btn.active {
+  background: linear-gradient(135deg, rgba(0, 162, 255, 0.25), rgba(0, 240, 255, 0.25));
+  border-color: var(--primary-accent);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+}
+
+.category-chips-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip-btn {
+  padding: 0.4rem 0.9rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50px;
+  color: var(--text-muted);
+  font-family: var(--font-main);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.chip-btn:hover {
+  background: rgba(0, 240, 255, 0.12);
+  color: var(--text-main);
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+.chip-btn.active {
+  background: var(--primary-accent);
+  color: #050814;
+  border-color: var(--primary-accent);
+  font-weight: 800;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+}
+
 .search-box {
   position: relative;
   flex: 1;

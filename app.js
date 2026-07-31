@@ -31,9 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
     mined_stone: { label: 'Pierre & Abîme', unit: 'num', key: 'mined_stone' },
     mined_obsidian: { label: 'Obsidienne', unit: 'num', key: 'mined_obsidian' },
     mined_wood: { label: 'Bois Coupé', unit: 'num', key: 'mined_wood' },
-    totem_popped: { label: 'Totems Utilisés (Pop)', unit: 'num', key: 'totem_popped' },
+    totem_popped: { label: 'Totems Pops', unit: 'num', key: 'totem_popped' },
     golden_apple: { label: 'Pommes Dorées', unit: 'num', key: 'golden_apple' },
-    enchanted_golden_apple: { label: 'Pommes Cheat (Notch)', unit: 'num', key: 'enchanted_golden_apple' },
+    enchanted_golden_apple: { label: 'Pommes Cheat', unit: 'num', key: 'enchanted_golden_apple' },
     ender_pearl: { label: 'Perles de l\'Ender', unit: 'num', key: 'ender_pearl' },
     mob_kills: { label: 'Mobs Tués', unit: 'num', key: 'mob_kills' },
     deaths: { label: 'Morts Total', unit: 'num', key: 'deaths' },
@@ -42,6 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
     damage_taken: { label: 'Dégâts Subis', unit: 'num', key: 'damage_taken' },
     damage_resisted: { label: 'Dégâts Résistés', unit: 'num', key: 'damage_resisted' },
     damage_blocked: { label: 'Dégâts Parés', unit: 'num', key: 'damage_blocked' },
+    used_sword: { label: 'Coups d\'Épée', unit: 'num', key: 'used_sword' },
+    used_mace: { label: 'Coups de Masse', unit: 'num', key: 'used_mace' },
+    used_axe: { label: 'Coups de Hache', unit: 'num', key: 'used_axe' },
+    used_bow: { label: 'Tirs Arc / Arbalète', unit: 'num', key: 'used_bow' },
+    used_trident: { label: 'Lancers Trident', unit: 'num', key: 'used_trident' },
+    used_shield: { label: 'Parades Bouclier', unit: 'num', key: 'used_shield' },
     distance_walked: { label: 'Distance Marche', unit: 'km', key: 'distance_walked' },
     fly_one_cm: { label: 'Distance Vol', unit: 'km', key: 'fly_one_cm' },
     swim_one_cm: { label: 'Distance Nage', unit: 'km', key: 'swim_one_cm' },
@@ -69,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     processRawData();
     calculateServerOverview();
     setupEventListeners();
+    initCategoryUI();
     updateLeaderboard();
     initComaData();
   }
@@ -96,6 +103,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const golden_apple = used['minecraft:golden_apple'] || 0;
       const enchanted_golden_apple = used['minecraft:enchanted_golden_apple'] || 0;
       const ender_pearl = used['minecraft:ender_pearl'] || 0;
+
+      // Weapon usage stats
+      let used_sword = 0;
+      let used_mace = used['minecraft:mace'] || 0;
+      let used_axe = 0;
+      let used_bow = (used['minecraft:bow'] || 0) + (used['minecraft:crossbow'] || 0);
+      let used_trident = used['minecraft:trident'] || 0;
+      let used_shield = used['minecraft:shield'] || 0;
+
+      for (const k in used) {
+        if (k.endsWith('_sword')) used_sword += used[k] || 0;
+        if (k.endsWith('_axe')) used_axe += used[k] || 0;
+      }
 
       // Sum all mined blocks
       let total_mined = 0;
@@ -175,6 +195,12 @@ document.addEventListener('DOMContentLoaded', () => {
           golden_apple,
           enchanted_golden_apple,
           ender_pearl,
+          used_sword,
+          used_mace,
+          used_axe,
+          used_bow,
+          used_trident,
+          used_shield,
           total_mined,
           mined_diamond,
           mined_debris,
@@ -433,25 +459,44 @@ document.addEventListener('DOMContentLoaded', () => {
     // Populate Mob Combat List
     const combatList = document.getElementById('modal-combat-list');
     combatList.innerHTML = `
-      <div class="resource-item" style="border: 1px solid rgba(255, 215, 0, 0.3); background: rgba(255, 215, 0, 0.08);">
-        <span class="resource-name" style="font-weight:700;">🔮 Totems Utilisés (Pop)</span>
-        <span class="resource-count" style="color:#ffd700; font-weight:800;">${formatNumber(player.metrics.totem_popped)}</span>
+      <div class="resource-item">
+        <span class="resource-name" style="font-weight:700;">Totems Pops</span>
+        <span class="resource-count" style="color:var(--primary-accent); font-weight:800;">${formatNumber(player.metrics.totem_popped)}</span>
+      </div>
+      <div class="resource-item">
+        <span class="resource-name">Coups d'Épée</span>
+        <span class="resource-count">${formatNumber(player.metrics.used_sword)}</span>
+      </div>
+      <div class="resource-item">
+        <span class="resource-name">Coups de Masse</span>
+        <span class="resource-count">${formatNumber(player.metrics.used_mace)}</span>
+      </div>
+      <div class="resource-item">
+        <span class="resource-name">Coups de Hache</span>
+        <span class="resource-count">${formatNumber(player.metrics.used_axe)}</span>
+      </div>
+      <div class="resource-item">
+        <span class="resource-name">Tirs Arc / Arbalète</span>
+        <span class="resource-count">${formatNumber(player.metrics.used_bow)}</span>
+      </div>
+      <div class="resource-item">
+        <span class="resource-name">Parades Bouclier</span>
+        <span class="resource-count">${formatNumber(player.metrics.used_shield)}</span>
       </div>
     `;
+
     const killedStats = player.rawStats['minecraft:killed'] || {};
     const killedArray = Object.keys(killedStats).map(key => ({
       name: key.replace('minecraft:', '').replace(/_/g, ' '),
       count: killedStats[key]
     })).sort((a, b) => b.count - a.count);
 
-    if (killedArray.length === 0) {
-      combatList.innerHTML = `<div class="resource-item">Aucun mob tué</div>`;
-    } else {
+    if (killedArray.length > 0) {
       killedArray.forEach(item => {
         combatList.innerHTML += `
           <div class="resource-item">
             <span class="resource-name">${capitalizeFirst(item.name)}</span>
-            <span class="resource-count">☠️ ${formatNumber(item.count)}</span>
+            <span class="resource-count">${formatNumber(item.count)}</span>
           </div>
         `;
       });
@@ -581,7 +626,140 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
-    return null;
+  // Modern Category & Sub-chips Engine
+  const CATEGORY_GROUPS = {
+    time: {
+      label: 'Temps & Survie',
+      items: [
+        { key: 'play_time', label: 'Temps de Jeu' },
+        { key: 'leave_game', label: 'Connexions' },
+        { key: 'time_since_death', label: 'Survie Actuelle' },
+        { key: 'time_since_rest', label: 'Temps Sans Dormir' }
+      ]
+    },
+    mining: {
+      label: 'Minage & Minerais',
+      items: [
+        { key: 'total_mined', label: 'Total Miné' },
+        { key: 'mined_diamond', label: 'Diamants' },
+        { key: 'mined_debris', label: 'Netherite' },
+        { key: 'mined_emerald', label: 'Émeraudes' },
+        { key: 'mined_gold', label: 'Or' },
+        { key: 'mined_iron', label: 'Fer' },
+        { key: 'mined_copper', label: 'Cuivre' },
+        { key: 'mined_lapis', label: 'Lapis-Lazuli' },
+        { key: 'mined_redstone', label: 'Redstone' },
+        { key: 'mined_coal', label: 'Charbon' },
+        { key: 'mined_stone', label: 'Pierre & Abîme' },
+        { key: 'mined_obsidian', label: 'Obsidienne' },
+        { key: 'mined_wood', label: 'Bois Coupé' }
+      ]
+    },
+    combat: {
+      label: 'Combat & Armes',
+      items: [
+        { key: 'damage_dealt', label: 'Dégâts Infligés' },
+        { key: 'damage_taken', label: 'Dégâts Subis' },
+        { key: 'player_kills', label: 'Joueurs Tués (PvP)' },
+        { key: 'mob_kills', label: 'Mobs Tués' },
+        { key: 'deaths', label: 'Morts Total' },
+        { key: 'totem_popped', label: 'Totems Pops' },
+        { key: 'used_sword', label: 'Coups d\'Épée' },
+        { key: 'used_mace', label: 'Coups de Masse' },
+        { key: 'used_axe', label: 'Coups de Hache' },
+        { key: 'used_bow', label: 'Arcs & Arbalètes' },
+        { key: 'used_trident', label: 'Lancers Trident' },
+        { key: 'used_shield', label: 'Parades Bouclier' },
+        { key: 'golden_apple', label: 'Pommes Dorées' },
+        { key: 'enchanted_golden_apple', label: 'Pommes Cheat' },
+        { key: 'ender_pearl', label: 'Perles de l\'Ender' }
+      ]
+    },
+    movement: {
+      label: 'Déplacements',
+      items: [
+        { key: 'distance_walked', label: 'Marche / Sprint' },
+        { key: 'fly_one_cm', label: 'Vol Élytres' },
+        { key: 'swim_one_cm', label: 'Nage' },
+        { key: 'boat_one_cm', label: 'Bateau' },
+        { key: 'horse_one_cm', label: 'Cheval' },
+        { key: 'jump', label: 'Sauts' }
+      ]
+    },
+    crafting: {
+      label: 'Artisanat & Commerce',
+      items: [
+        { key: 'traded_with_villager', label: 'Échanges Villageois' },
+        { key: 'animals_bred', label: 'Animaux Reproduits' },
+        { key: 'fish_caught', label: 'Poissons Pêchés' },
+        { key: 'enchant_item', label: 'Enchantements' },
+        { key: 'total_crafted', label: 'Items Craftés' },
+        { key: 'total_picked_up', label: 'Items Ramassés' },
+        { key: 'drop', label: 'Items Jetés' }
+      ]
+    }
+  };
+
+  let activeCategoryGroup = 'time';
+  let activeCategoryKey = 'play_time';
+
+  function initCategoryUI() {
+    const mainTabsContainer = document.getElementById('category-main-tabs');
+    const chipsBarContainer = document.getElementById('category-chips-bar');
+    if (!mainTabsContainer || !chipsBarContainer) return;
+
+    function renderSubChips(groupKey) {
+      const group = CATEGORY_GROUPS[groupKey];
+      if (!group) return;
+
+      chipsBarContainer.innerHTML = '';
+      group.items.forEach((item, index) => {
+        const isChipActive = item.key === activeCategoryKey || (index === 0 && !group.items.some(i => i.key === activeCategoryKey));
+        if (isChipActive && index === 0 && !group.items.some(i => i.key === activeCategoryKey)) {
+          activeCategoryKey = item.key;
+        }
+
+        const chipBtn = document.createElement('button');
+        chipBtn.className = `chip-btn ${isChipActive ? 'active' : ''}`;
+        chipBtn.textContent = item.label;
+        chipBtn.dataset.statKey = item.key;
+
+        chipBtn.addEventListener('click', () => {
+          document.querySelectorAll('.chip-btn').forEach(c => c.classList.remove('active'));
+          chipBtn.classList.add('active');
+          activeCategoryKey = item.key;
+
+          const sortSel = document.getElementById('sort-category');
+          if (sortSel) sortSel.value = item.key;
+
+          currentPage = 1;
+          updateLeaderboard();
+        });
+
+        chipsBarContainer.appendChild(chipBtn);
+      });
+    }
+
+    document.querySelectorAll('.cat-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeCategoryGroup = btn.dataset.catGroup;
+
+        const group = CATEGORY_GROUPS[activeCategoryGroup];
+        if (group && group.items.length > 0) {
+          activeCategoryKey = group.items[0].key;
+          const sortSel = document.getElementById('sort-category');
+          if (sortSel) sortSel.value = activeCategoryKey;
+        }
+
+        renderSubChips(activeCategoryGroup);
+        currentPage = 1;
+        updateLeaderboard();
+      });
+    });
+
+    renderSubChips(activeCategoryGroup);
   }
 
   // 7. Event Listeners Setup
@@ -828,7 +1006,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </td>
           <td>
-            <span style="color: #ff4757; font-weight: 800; font-family: var(--font-mono); font-size: 1.05rem;">⚔️ ${formatNumber(item.count)}</span>
+            <span style="color: #ff4757; font-weight: 800; font-family: var(--font-mono); font-size: 1.05rem;">${formatNumber(item.count)}</span>
           </td>
           <td>
             <div style="display:flex; align-items:center; gap:0.5rem;">
@@ -840,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </td>
           <td>
             <button class="btn btn-secondary btn-detail" onclick="document.getElementById('coma-search').value='${escapeHtml(item.name)}'; document.getElementById('coma-tab-feed').click();" style="padding:0.35rem 0.75rem; font-size:0.8rem;">
-              🔍 Voir Logs
+              Voir Logs
             </button>
           </td>
         `;
@@ -914,7 +1092,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </td>
           <td>
-            <span style="color: #ffa502; font-weight: 800; font-family: var(--font-mono); font-size: 1.05rem;">🤕 ${formatNumber(item.count)}</span>
+            <span style="color: #ffa502; font-weight: 800; font-family: var(--font-mono); font-size: 1.05rem;">${formatNumber(item.count)}</span>
           </td>
           <td>
             <div style="display:flex; align-items:center; gap:0.5rem;">
@@ -926,7 +1104,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </td>
           <td>
             <button class="btn btn-secondary btn-detail" onclick="document.getElementById('coma-search').value='${escapeHtml(item.name)}'; document.getElementById('coma-tab-feed').click();" style="padding:0.35rem 0.75rem; font-size:0.8rem;">
-              🔍 Voir Logs
+              Voir Logs
             </button>
           </td>
         `;
@@ -986,12 +1164,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const tr = document.createElement('tr');
 
       let catColor = 'var(--text-muted)';
-      let catIcon = '🌧️';
-      if (ev.category === 'PvP (Joueur)') { catColor = '#ff4757'; catIcon = '⚔️'; }
-      else if (ev.category === 'Mob / Entité') { catColor = '#ffa502'; catIcon = '🧟'; }
-      else if (ev.category === 'Chute') { catColor = '#ff6348'; catIcon = '🪵'; }
-      else if (ev.category === 'Noyade') { catColor = '#1e90ff'; catIcon = '🌊'; }
-      else if (ev.category === 'Lave / Feu') { catColor = '#ff4500'; catIcon = '🔥'; }
+      if (ev.category === 'PvP (Joueur)') { catColor = '#ff4757'; }
+      else if (ev.category === 'Mob / Entité') { catColor = '#ffa502'; }
+      else if (ev.category === 'Chute') { catColor = '#ff6348'; }
+      else if (ev.category === 'Noyade') { catColor = '#1e90ff'; }
+      else if (ev.category === 'Lave / Feu') { catColor = '#ff4500'; }
 
       tr.innerHTML = `
         <td style="text-align:center;">
@@ -1015,7 +1192,7 @@ document.addEventListener('DOMContentLoaded', () => {
             border: 1px solid ${catColor}44;
             padding: 0.25rem 0.7rem; border-radius: 50px;
             font-size: 0.8rem; font-weight: 600;
-          ">${catIcon} ${escapeHtml(ev.category)}</span>
+          ">${escapeHtml(ev.category)}</span>
         </td>
       `;
       tbody.appendChild(tr);

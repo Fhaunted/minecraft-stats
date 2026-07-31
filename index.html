@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=999">
 </head>
 <body>
   <!-- Header / Hero Section -->
@@ -25,10 +25,10 @@
       <!-- View Switcher Tabs -->
       <div class="view-switcher-container">
         <button class="view-tab-btn active" id="view-tab-stats">
-          <span class="tab-icon">📊</span> Leaderboard & Stats
+          Leaderboard & Stats
         </button>
         <button class="view-tab-btn" id="view-tab-coma">
-          <span class="tab-icon">🏥</span> Journal des Comas (Kutils Logs)
+          Journal des Comas (Kutils Logs)
           <span class="badge-count-pill" id="total-coma-pill">3 887</span>
         </button>
       </div>
@@ -36,7 +36,6 @@
       <!-- Stats Overview Cards -->
       <div class="stats-overview-grid" id="stats-overview">
         <div class="stat-card glass-card card-glow">
-          <div class="stat-icon">⏱️</div>
           <div class="stat-info">
             <span class="stat-label">Temps de Jeu Total</span>
             <span class="stat-value" id="total-playtime">--</span>
@@ -45,7 +44,6 @@
         </div>
 
         <div class="stat-card glass-card card-glow">
-          <div class="stat-icon">⛏️</div>
           <div class="stat-info">
             <span class="stat-label">Blocs Minés (Total)</span>
             <span class="stat-value" id="total-mined">--</span>
@@ -54,7 +52,6 @@
         </div>
 
         <div class="stat-card glass-card card-glow">
-          <div class="stat-icon">💎</div>
           <div class="stat-info">
             <span class="stat-label">Diamants Minés</span>
             <span class="stat-value" id="total-diamonds">--</span>
@@ -63,7 +60,6 @@
         </div>
 
         <div class="stat-card glass-card card-glow">
-          <div class="stat-icon">🔮</div>
           <div class="stat-info">
             <span class="stat-label">Totems Pops</span>
             <span class="stat-value" id="total-totems">--</span>
@@ -72,7 +68,6 @@
         </div>
 
         <div class="stat-card glass-card card-glow">
-          <div class="stat-icon">🏥</div>
           <div class="stat-info">
             <span class="stat-label">Comas Enregistrés</span>
             <span class="stat-value" id="total-comas-card">3 887</span>
@@ -87,77 +82,37 @@
   <main class="container main-content">
     <!-- SECTION 1: Stats & Leaderboard View -->
     <div id="stats-view-section" class="view-section">
+      <!-- Modern Category Selector UI -->
+      <div class="category-ui-card glass-card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+        <div class="category-tabs-bar" id="category-main-tabs">
+          <button class="cat-tab-btn active" data-cat-group="time">Temps & Survie</button>
+          <button class="cat-tab-btn" data-cat-group="mining">Minage & Minerais</button>
+          <button class="cat-tab-btn" data-cat-group="combat">Combat & Armes</button>
+          <button class="cat-tab-btn" data-cat-group="movement">Déplacements</button>
+          <button class="cat-tab-btn" data-cat-group="crafting">Artisanat & Commerce</button>
+        </div>
+
+        <div class="category-chips-bar" id="category-chips-bar">
+          <!-- Dynamically populated sub-stat chips -->
+        </div>
+
+        <select id="sort-category" style="display: none;"></select>
+      </div>
+
       <div class="controls-panel glass-card">
         <div class="search-box">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon">Search</span>
           <input type="text" id="player-search" placeholder="Rechercher un pseudo ou UUID..." autocomplete="off">
         </div>
 
         <div class="filter-group">
           <div class="select-wrapper">
-            <label for="sort-category">Statistique :</label>
-            <select id="sort-category">
-              <optgroup label="⏱️ Temps & Survie">
-                <option value="play_time" selected>Temps de jeu (Heures)</option>
-                <option value="leave_game">Connexions au serveur</option>
-                <option value="time_since_death">Survie actuelle (Sans mourir)</option>
-                <option value="time_since_rest">Temps sans dormir</option>
-              </optgroup>
-              <optgroup label="⛏️ Minage & Minerai">
-                <option value="total_mined">Total Blocs Minés</option>
-                <option value="mined_diamond">Diamants Minés</option>
-                <option value="mined_debris">Débris Antiques (Netherite)</option>
-                <option value="mined_emerald">Émeraudes Minées</option>
-                <option value="mined_gold">Or Miné</option>
-                <option value="mined_iron">Fer Miné</option>
-                <option value="mined_copper">Cuivre Miné</option>
-                <option value="mined_lapis">Lapis-Lazuli Miné</option>
-                <option value="mined_redstone">Redstone Minée</option>
-                <option value="mined_coal">Charbon Miné</option>
-                <option value="mined_stone">Pierre & Abîme (Stone/Deepslate)</option>
-                <option value="mined_obsidian">Obsidienne Minée</option>
-                <option value="mined_wood">Bois coupé (Logs)</option>
-              </optgroup>
-              <optgroup label="⚔️ Combat, Items & Stuff">
-                <option value="totem_popped">🔮 Totems Utilisés (Pops)</option>
-                <option value="golden_apple">🍎 Pommes Dorées Consommées</option>
-                <option value="enchanted_golden_apple">✨ Pommes Cheat (Notch Apple)</option>
-                <option value="ender_pearl">🔮 Perles de l'Ender Lancées</option>
-                <option value="mob_kills">Mobs Tués</option>
-                <option value="deaths">Morts Total</option>
-                <option value="player_kills">Joueurs Tués (PvP)</option>
-                <option value="damage_dealt">Dégâts Infligés</option>
-                <option value="damage_taken">Dégâts Subis</option>
-                <option value="damage_resisted">Dégâts Résistés</option>
-                <option value="damage_blocked">Dégâts Bloqués au Bouclier</option>
-              </optgroup>
-              <optgroup label="🏃 Déplacement & Transport">
-                <option value="distance_walked">Distance Marche / Sprint (km)</option>
-                <option value="fly_one_cm">Distance Vol Élytres (km)</option>
-                <option value="swim_one_cm">Distance Nage (km)</option>
-                <option value="boat_one_cm">Distance Bateau (km)</option>
-                <option value="horse_one_cm">Distance Cheval (km)</option>
-                <option value="jump">Nombre de Sauts</option>
-              </optgroup>
-              <optgroup label="🛠️ Artisanat & Commerce">
-                <option value="traded_with_villager">Échanges Villageois</option>
-                <option value="animals_bred">Animaux Reproduits</option>
-                <option value="fish_caught">Poissons Pêchés</option>
-                <option value="enchant_item">Objets Enchantés</option>
-                <option value="total_crafted">Items Craftés</option>
-                <option value="total_picked_up">Items Ramassés</option>
-                <option value="drop">Items Jetés</option>
-              </optgroup>
-                <option value="fish_caught">Poissons Pêchés</option>
-                <option value="enchant_item">Objets Enchantés</option>
-              </optgroup>
-            </select>
-          </div>
-
-          <div class="select-wrapper">
             <label for="sort-order">Ordre :</label>
             <select id="sort-order">
-              <option value="desc" selected>⬇️ Plus grand au plus petit (Max ➔ Min)</option>
+              <option value="desc" selected>Plus grand au plus petit (Max -> Min)</option>
+              <option value="asc">Plus petit au plus grand (Min -> Max)</option>
+            </select>
+          </div>
               <option value="asc">⬆️ Plus petit au plus grand (Min ➔ Max)</option>
             </select>
           </div>
@@ -216,15 +171,15 @@
     <div id="coma-view-section" class="view-section hidden">
       <!-- Coma Sub-Tabs -->
       <div class="modal-tabs" style="margin-bottom: 1.5rem;">
-        <button class="tab-btn active" id="coma-tab-attackers" data-coma-mode="attackers">⚔️ Classement Bourreaux (Comas Infligés)</button>
-        <button class="tab-btn" id="coma-tab-victims" data-coma-mode="victims">🤕 Classement Victimes (Comas Subis)</button>
-        <button class="tab-btn" id="coma-tab-feed" data-coma-mode="feed">📜 Journal Historique (3 887 Events)</button>
+        <button class="tab-btn active" id="coma-tab-attackers" data-coma-mode="attackers">Classement Bourreaux (Comas Infligés)</button>
+        <button class="tab-btn" id="coma-tab-victims" data-coma-mode="victims">Classement Victimes (Comas Subis)</button>
+        <button class="tab-btn" id="coma-tab-feed" data-coma-mode="feed">Journal Historique (3 887 Events)</button>
       </div>
 
       <!-- Controls for Rankings / Feed -->
       <div class="controls-panel glass-card">
         <div class="search-box">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon">Search</span>
           <input type="text" id="coma-search" placeholder="Rechercher un pseudo..." autocomplete="off">
         </div>
 
@@ -233,20 +188,20 @@
             <label for="coma-category-filter">Type de cause :</label>
             <select id="coma-category-filter">
               <option value="all" selected>Toutes les causes</option>
-              <option value="PvP (Joueur)">⚔️ PvP (Tué par un joueur)</option>
-              <option value="Mob / Entité">🧟 Mobs & Entités</option>
-              <option value="Chute">🪵 Chutes</option>
-              <option value="Noyade">🌊 Noyades</option>
-              <option value="Lave / Feu">🔥 Lave & Feu</option>
-              <option value="Environnement">🌧️ Autre Environnement</option>
+              <option value="PvP (Joueur)">PvP (Tué par un joueur)</option>
+              <option value="Mob / Entité">Mobs & Entités</option>
+              <option value="Chute">Chutes</option>
+              <option value="Noyade">Noyades</option>
+              <option value="Lave / Feu">Lave & Feu</option>
+              <option value="Environnement">Autre Environnement</option>
             </select>
           </div>
 
           <div class="select-wrapper">
             <label for="coma-sort-order">Ordre :</label>
             <select id="coma-sort-order">
-              <option value="newest" selected>⏱️ Plus récents / Plus grands</option>
-              <option value="oldest">⌛ Plus anciens / Plus petits</option>
+              <option value="newest" selected>Plus récents / Plus grands</option>
+              <option value="oldest">Plus anciens / Plus petits</option>
             </select>
           </div>
         </div>
@@ -386,8 +341,8 @@
   </footer>
 
   <!-- Include compiled data scripts -->
-  <script src="data.js?v=7"></script>
-  <script src="coma_data.js?v=7"></script>
-  <script src="app.js?v=7"></script>
+  <script src="data.js?v=999"></script>
+  <script src="coma_data.js?v=999"></script>
+  <script src="app.js?v=999"></script>
 </body>
 </html>
