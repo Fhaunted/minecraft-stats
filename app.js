@@ -480,7 +480,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <img class="player-avatar" src="https://mc-heads.net/avatar/${player.uuid}/64" alt="Skin" loading="lazy" onerror="this.src='https://crafatar.com/avatars/steve?size=64'">
             <div class="player-name-box">
               <span class="player-name name-target-${player.uuid}">${escapeHtml(player.name)}</span>
-              ${player.metrics.coma_received_count > 0 ? `<span class="player-coma-pill">💀 ${formatNumber(player.metrics.coma_received_count)}</span>` : ''}
             </div>
           </div>
         </td>
