@@ -31,13 +31,14 @@ document.addEventListener('DOMContentLoaded', () => {
     mined_stone: { label: 'Pierre & Abîme', unit: 'num', key: 'mined_stone' },
     mined_obsidian: { label: 'Obsidienne', unit: 'num', key: 'mined_obsidian' },
     mined_wood: { label: 'Bois Coupé', unit: 'num', key: 'mined_wood' },
-    totem_popped: { label: 'Totems Pops', unit: 'num', key: 'totem_popped' },
     golden_apple: { label: 'Pommes Dorées', unit: 'num', key: 'golden_apple' },
     enchanted_golden_apple: { label: 'Pommes Cheat', unit: 'num', key: 'enchanted_golden_apple' },
     ender_pearl: { label: 'Perles de l\'Ender', unit: 'num', key: 'ender_pearl' },
     mob_kills: { label: 'Mobs Tués', unit: 'num', key: 'mob_kills' },
     deaths: { label: 'Morts Total', unit: 'num', key: 'deaths' },
     player_kills: { label: 'Joueurs Tués', unit: 'num', key: 'player_kills' },
+    coma_received_count: { label: 'Mis en coma', unit: 'num', key: 'coma_received_count' },
+    coma_given_count: { label: 'A mis en coma', unit: 'num', key: 'coma_given_count' },
     damage_dealt: { label: 'Dégâts Infligés', unit: 'num', key: 'damage_dealt' },
     damage_taken: { label: 'Dégâts Subis', unit: 'num', key: 'damage_taken' },
     damage_resisted: { label: 'Dégâts Résistés', unit: 'num', key: 'damage_resisted' },
@@ -63,6 +64,91 @@ document.addEventListener('DOMContentLoaded', () => {
     drop: { label: 'Items Jetés', unit: 'num', key: 'drop' }
   };
 
+  // Modern Category & Sub-chips Engine
+  const CATEGORY_GROUPS = {
+    time: {
+      label: 'Temps & Survie',
+      items: [
+        { key: 'play_time', label: 'Temps de Jeu' },
+        { key: 'leave_game', label: 'Connexions' },
+        { key: 'time_since_death', label: 'Survie Actuelle' },
+        { key: 'time_since_rest', label: 'Temps Sans Dormir' }
+      ]
+    },
+    mining: {
+      label: 'Minage & Minerais',
+      items: [
+        { key: 'total_mined', label: 'Total Miné' },
+        { key: 'mined_diamond', label: 'Diamants' },
+        { key: 'mined_debris', label: 'Netherite' },
+        { key: 'mined_emerald', label: 'Émeraudes' },
+        { key: 'mined_gold', label: 'Or' },
+        { key: 'mined_iron', label: 'Fer' },
+        { key: 'mined_copper', label: 'Cuivre' },
+        { key: 'mined_lapis', label: 'Lapis-Lazuli' },
+        { key: 'mined_redstone', label: 'Redstone' },
+        { key: 'mined_coal', label: 'Charbon' },
+        { key: 'mined_stone', label: 'Pierre & Abîme' },
+        { key: 'mined_obsidian', label: 'Obsidienne' },
+        { key: 'mined_wood', label: 'Bois Coupé' }
+      ]
+    },
+    combat: {
+      label: 'Combat & Armes',
+      items: [
+        { key: 'damage_dealt', label: 'Dégâts Infligés' },
+        { key: 'damage_taken', label: 'Dégâts Subis' },
+        { key: 'damage_resisted', label: 'Dégâts Résistés' },
+        { key: 'damage_blocked', label: 'Dégâts Parés' },
+        { key: 'player_kills', label: 'Joueurs Tués (PvP)' },
+        { key: 'mob_kills', label: 'Mobs Tués' },
+        { key: 'deaths', label: 'Morts Total' },
+        { key: 'used_sword', label: 'Coups d\'Épée' },
+        { key: 'used_mace', label: 'Coups de Masse' },
+        { key: 'used_axe', label: 'Coups de Hache' },
+        { key: 'used_bow', label: 'Arcs & Arbalètes' },
+        { key: 'used_trident', label: 'Lancers Trident' },
+        { key: 'used_shield', label: 'Parades Bouclier' },
+        { key: 'golden_apple', label: 'Pommes Dorées' },
+        { key: 'enchanted_golden_apple', label: 'Pommes Cheat' },
+        { key: 'ender_pearl', label: 'Perles de l\'Ender' }
+      ]
+    },
+    coma: {
+      label: 'Comas',
+      items: [
+        { key: 'coma_received_count', label: 'Mis en coma' },
+        { key: 'coma_given_count', label: 'A mis en coma' }
+      ]
+    },
+    movement: {
+      label: 'Déplacements',
+      items: [
+        { key: 'distance_walked', label: 'Marche / Sprint' },
+        { key: 'fly_one_cm', label: 'Vol Élytres' },
+        { key: 'swim_one_cm', label: 'Nage' },
+        { key: 'boat_one_cm', label: 'Bateau' },
+        { key: 'horse_one_cm', label: 'Cheval' },
+        { key: 'jump', label: 'Sauts' }
+      ]
+    },
+    crafting: {
+      label: 'Artisanat & Commerce',
+      items: [
+        { key: 'traded_with_villager', label: 'Échanges Villageois' },
+        { key: 'animals_bred', label: 'Animaux Reproduits' },
+        { key: 'fish_caught', label: 'Poissons Pêchés' },
+        { key: 'enchant_item', label: 'Enchantements' },
+        { key: 'total_crafted', label: 'Items Craftés' },
+        { key: 'total_picked_up', label: 'Items Ramassés' },
+        { key: 'drop', label: 'Items Jetés' }
+      ]
+    }
+  };
+
+  let activeCategoryGroup = 'time';
+  let activeCategoryKey = 'play_time';
+
   // 1. Initialize Application
   init();
 
@@ -78,6 +164,22 @@ document.addEventListener('DOMContentLoaded', () => {
     initCategoryUI();
     updateLeaderboard();
     initComaData();
+  }
+
+  function getComaCountForPlayer(playerName, countsObject) {
+    if (!playerName || !countsObject || typeof countsObject !== 'object') return 0;
+
+    const direct = countsObject[playerName];
+    if (typeof direct === 'number') return direct;
+
+    const normalizedName = playerName.toLowerCase().trim();
+    for (const [name, count] of Object.entries(countsObject)) {
+      if (typeof count === 'number' && name.toLowerCase().trim() === normalizedName) {
+        return count;
+      }
+    }
+
+    return 0;
   }
 
   // 2. Extract and Process Player Stats
@@ -181,6 +283,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // Default name fallback
       const cachedName = usernameCache[uuid];
       const name = item.name || cachedName || `Player_${uuid.substring(0, 5)}`;
+      const coma_received_count = (typeof COMA_DATA !== 'undefined' && COMA_DATA)
+        ? getComaCountForPlayer(name, COMA_DATA.victimCounts)
+        : 0;
+      const coma_given_count = (typeof COMA_DATA !== 'undefined' && COMA_DATA)
+        ? getComaCountForPlayer(name, COMA_DATA.attackerCounts)
+        : 0;
 
       return {
         uuid,
@@ -217,6 +325,8 @@ document.addEventListener('DOMContentLoaded', () => {
           mob_kills,
           deaths,
           player_kills,
+          coma_received_count,
+          coma_given_count,
           damage_dealt,
           damage_taken,
           damage_resisted,
@@ -247,14 +357,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let sumPlaytime = 0;
     let sumMined = 0;
     let sumDiamonds = 0;
-    let sumTotems = 0;
     let sumKills = 0;
 
     processedPlayers.forEach(p => {
       sumPlaytime += p.metrics.play_time;
       sumMined += p.metrics.total_mined;
       sumDiamonds += p.metrics.mined_diamond;
-      sumTotems += p.metrics.totem_popped;
       sumKills += p.metrics.mob_kills;
     });
 
@@ -270,8 +378,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setElText('avg-mined', formatNumber(Math.round(sumMined / totalCount)));
     setElText('total-diamonds', formatNumber(sumDiamonds));
     setElText('avg-diamonds', formatNumber(Math.round(sumDiamonds / totalCount)));
-    setElText('total-totems', formatNumber(sumTotems));
-    setElText('avg-totems', formatNumber(Math.round(sumTotems / totalCount)));
   }
 
   // 4. Update & Render Leaderboard Table
@@ -302,7 +408,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Update Category Average Indicator
     const catConfig = STAT_CONFIG[categoryKey] || { label: 'Statistique', unit: 'num' };
-    document.getElementById('table-stat-title').textContent = catConfig.label;
+    const leaderboardHead = document.getElementById('leaderboard-head');
+    if (leaderboardHead) {
+      leaderboardHead.innerHTML = `
+        <tr>
+          <th class="col-rank">#</th>
+          <th class="col-player">Joueur</th>
+          <th class="col-main-stat" id="table-stat-title">${catConfig.label}</th>
+          <th class="col-diff">vs Moyenne</th>
+          <th class="col-action">Détails</th>
+        </tr>
+      `;
+    }
 
     let catSum = 0;
     filteredPlayers.forEach(p => { catSum += (p.metrics[categoryKey] || 0); });
@@ -363,30 +480,26 @@ document.addEventListener('DOMContentLoaded', () => {
             <img class="player-avatar" src="https://mc-heads.net/avatar/${player.uuid}/64" alt="Skin" loading="lazy" onerror="this.src='https://crafatar.com/avatars/steve?size=64'">
             <div class="player-name-box">
               <span class="player-name name-target-${player.uuid}">${escapeHtml(player.name)}</span>
-              <span class="player-uuid-sub">${player.uuid.substring(0, 8)}...</span>
+              ${player.metrics.coma_received_count > 0 ? `<span class="player-coma-pill">💀 ${formatNumber(player.metrics.coma_received_count)}</span>` : ''}
             </div>
           </div>
         </td>
         <td class="col-main-stat">
           <span class="main-stat-val">${formattedMainStat}</span>
         </td>
-        <td class="col-sub">
-          <span class="sub-stat-val">${formatNumber(player.metrics.total_mined)}</span>
-        </td>
-        <td class="col-sub">
-          <span class="sub-stat-val">💎 ${formatNumber(player.metrics.mined_diamond)}</span>
-        </td>
-        <td class="col-sub">
-          <span class="sub-stat-val">⚔️ ${formatNumber(player.metrics.mob_kills)}</span>
-        </td>
-        <td class="col-sub">
-          <span class="sub-stat-val">☠️ ${formatNumber(player.metrics.deaths)}</span>
-        </td>
         <td class="col-diff">${diffBadge}</td>
         <td class="col-action">
           <button class="btn btn-detail" data-uuid="${player.uuid}">Voir Stats</button>
         </td>
       `;
+
+      const detailBtn = tr.querySelector('.btn-detail');
+      if (detailBtn) {
+        detailBtn.addEventListener('click', (event) => {
+          event.preventDefault();
+          openPlayerModal(player.uuid);
+        });
+      }
 
       tbody.appendChild(tr);
     });
@@ -405,64 +518,102 @@ document.addEventListener('DOMContentLoaded', () => {
     const player = processedPlayers.find(p => p.uuid === uuid);
     if (!player) return;
 
+    function setText(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    }
+
     // Header Info
-    document.getElementById('modal-player-skin').src = `https://mc-heads.net/avatar/${player.uuid}/128`;
-    document.getElementById('modal-player-name').textContent = player.name;
-    document.getElementById('modal-player-uuid').textContent = player.uuid;
+    const skinEl = document.getElementById('modal-player-skin');
+    if (skinEl) skinEl.src = `https://mc-heads.net/avatar/${player.uuid}/128`;
+    setText('modal-player-name', player.name);
 
     // Player Badges
     const badgesBox = document.getElementById('modal-player-badges');
-    badgesBox.innerHTML = '';
+    if (badgesBox) badgesBox.innerHTML = '';
     
-    if (player.metrics.play_time > 36000000) { // 500+ hours
-      badgesBox.innerHTML += `<span class="badge-tag">👑 Vétéran</span>`;
+    if (badgesBox) {
+      if (player.metrics.play_time > 36000000) { // 500+ hours
+        badgesBox.innerHTML += `<span class="badge-tag">👑 Vétéran</span>`;
+      }
+      if (player.metrics.mined_diamond > 200) {
+        badgesBox.innerHTML += `<span class="badge-tag">💎 Diamantologue</span>`;
+      }
+      if (player.metrics.mob_kills > 5000) {
+        badgesBox.innerHTML += `<span class="badge-tag">⚔️ Tueur de Mobs</span>`;
+      }
+      if (player.metrics.distance_walked > 500) {
+        badgesBox.innerHTML += `<span class="badge-tag">🏃 Explorateur</span>`;
+      }
     }
-    if (player.metrics.mined_diamond > 200) {
-      badgesBox.innerHTML += `<span class="badge-tag">💎 Diamantologue</span>`;
-    }
-    if (player.metrics.mob_kills > 5000) {
-      badgesBox.innerHTML += `<span class="badge-tag">⚔️ Tueur de Mobs</span>`;
-    }
-    if (player.metrics.distance_walked > 500) {
-      badgesBox.innerHTML += `<span class="badge-tag">🏃 Explorateur</span>`;
+
+    const activeGroupKey = activeCategoryGroup || 'time';
+    const activeGroup = CATEGORY_GROUPS[activeGroupKey] || CATEGORY_GROUPS.time;
+    const categoryStatsList = document.getElementById('modal-category-stats-list');
+    if (categoryStatsList) {
+      categoryStatsList.innerHTML = '';
+      activeGroup.items.forEach(item => {
+        const statConfig = STAT_CONFIG[item.key] || { unit: 'num' };
+        const value = player.metrics[item.key] ?? 0;
+        categoryStatsList.innerHTML += `
+          <div class="resource-item category-stat-item">
+            <span class="resource-name">${escapeHtml(item.label)}</span>
+            <span class="resource-count">${formatStatValue(value, statConfig.unit)}</span>
+          </div>
+        `;
+      });
     }
 
     // Overview Tab Stats
-    document.getElementById('m-playtime').textContent = formatPlaytime(player.metrics.play_time);
-    document.getElementById('m-total-mined').textContent = formatNumber(player.metrics.total_mined);
-    document.getElementById('m-diamonds').textContent = formatNumber(player.metrics.mined_diamond);
-    document.getElementById('m-mobs').textContent = formatNumber(player.metrics.mob_kills);
-    document.getElementById('m-deaths').textContent = formatNumber(player.metrics.deaths);
-    document.getElementById('m-distance').textContent = `${player.metrics.distance_walked} km`;
+    setText('m-playtime', formatPlaytime(player.metrics.play_time));
+    setText('m-total-mined', formatNumber(player.metrics.total_mined));
+    setText('m-diamonds', formatNumber(player.metrics.mined_diamond));
+    setText('m-mobs', formatNumber(player.metrics.mob_kills));
+    setText('m-deaths', formatNumber(player.metrics.deaths));
+    setText('m-distance', `${player.metrics.distance_walked} km`);
 
     // Populate Mined List
     const minedList = document.getElementById('modal-mined-list');
-    minedList.innerHTML = '';
+    if (minedList) minedList.innerHTML = '';
     const minedStats = player.rawStats['minecraft:mined'] || {};
     const minedArray = Object.keys(minedStats).map(key => ({
       name: key.replace('minecraft:', '').replace(/_/g, ' '),
       count: minedStats[key]
     })).sort((a, b) => b.count - a.count);
 
-    if (minedArray.length === 0) {
-      minedList.innerHTML = `<div class="resource-item">Aucun bloc miné</div>`;
-    } else {
-      minedArray.slice(0, 18).forEach(item => {
-        minedList.innerHTML += `
-          <div class="resource-item">
-            <span class="resource-name">${capitalizeFirst(item.name)}</span>
-            <span class="resource-count">${formatNumber(item.count)}</span>
-          </div>
-        `;
-      });
+    if (minedList) {
+      if (minedArray.length === 0) {
+        minedList.innerHTML = `<div class="resource-item">Aucun bloc miné</div>`;
+      } else {
+        minedArray.slice(0, 18).forEach(item => {
+          minedList.innerHTML += `
+            <div class="resource-item">
+              <span class="resource-name">${capitalizeFirst(item.name)}</span>
+              <span class="resource-count">${formatNumber(item.count)}</span>
+            </div>
+          `;
+        });
+      }
     }
 
     // Populate Mob Combat List
     const combatList = document.getElementById('modal-combat-list');
-    combatList.innerHTML = `
+    if (combatList) combatList.innerHTML = `
       <div class="resource-item">
-        <span class="resource-name" style="font-weight:700;">Totems Pops</span>
-        <span class="resource-count" style="color:var(--primary-accent); font-weight:800;">${formatNumber(player.metrics.totem_popped)}</span>
+        <span class="resource-name">Dégâts Infligés</span>
+        <span class="resource-count">${formatNumber(player.metrics.damage_dealt)}</span>
+      </div>
+      <div class="resource-item">
+        <span class="resource-name">Dégâts Subis</span>
+        <span class="resource-count">${formatNumber(player.metrics.damage_taken)}</span>
+      </div>
+      <div class="resource-item">
+        <span class="resource-name">Dégâts Résistés</span>
+        <span class="resource-count">${formatNumber(player.metrics.damage_resisted)}</span>
+      </div>
+      <div class="resource-item">
+        <span class="resource-name">Dégâts Parés</span>
+        <span class="resource-count">${formatNumber(player.metrics.damage_blocked)}</span>
       </div>
       <div class="resource-item">
         <span class="resource-name">Coups d'Épée</span>
@@ -492,7 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
       count: killedStats[key]
     })).sort((a, b) => b.count - a.count);
 
-    if (killedArray.length > 0) {
+    if (combatList && killedArray.length > 0) {
       killedArray.forEach(item => {
         combatList.innerHTML += `
           <div class="resource-item">
@@ -505,7 +656,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Populate Exploration List
     const expList = document.getElementById('modal-exploration-list');
-    expList.innerHTML = `
+    if (expList) expList.innerHTML = `
       <div class="resource-item">
         <span class="resource-name">Distance Marche/Sprint</span>
         <span class="resource-count">${player.metrics.distance_walked} km</span>
@@ -540,31 +691,38 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
-    // Populate Player Coma History
+    // Populate Player Coma Summary
     const comaCount = getPlayerComaCount(player.name);
-    document.getElementById('m-coma-total').textContent = formatNumber(comaCount);
-    document.getElementById('modal-coma-count').textContent = comaCount;
+    const comaTotalEl = document.getElementById('m-coma-total');
+    if (comaTotalEl) comaTotalEl.textContent = formatNumber(comaCount);
+
+    const modalComaCountEl = document.getElementById('modal-coma-count');
+    if (modalComaCountEl) modalComaCountEl.textContent = comaCount;
 
     const comaList = document.getElementById('modal-coma-list');
-    if (comaCount > 0) {
-      const playerComaEvents = getPlayerComaEvents(player.name);
-      comaList.innerHTML = '';
-      playerComaEvents.slice(0, 30).forEach(ev => {
-        comaList.innerHTML += `
-          <div class="resource-item">
-            <span class="resource-name">${ev.date} ${ev.time}</span>
-            <span class="resource-count" style="color: #ff4757;">${escapeHtml(ev.cause)}</span>
-          </div>
-        `;
-      });
-      if (playerComaEvents.length > 30) {
-        comaList.innerHTML += `<div class="resource-item"><span class="resource-name" style="color:var(--text-dim);">...et ${playerComaEvents.length - 30} de plus</span></div>`;
+    if (comaList) {
+      if (comaCount > 0) {
+        const playerComaEvents = getPlayerComaEvents(player.name);
+        comaList.innerHTML = '';
+        playerComaEvents.slice(0, 30).forEach(ev => {
+          comaList.innerHTML += `
+            <div class="resource-item">
+              <span class="resource-name">${ev.date} ${ev.time}</span>
+              <span class="resource-count" style="color: #ff4757;">${escapeHtml(ev.cause)}</span>
+            </div>
+          `;
+        });
+        if (playerComaEvents.length > 30) {
+          comaList.innerHTML += `<div class="resource-item"><span class="resource-name" style="color:var(--text-dim);">...et ${playerComaEvents.length - 30} de plus</span></div>`;
+        }
+      } else {
+        comaList.innerHTML = `<div class="resource-item"><span class="resource-name">Aucun coma enregistré 🎉</span></div>`;
       }
-    } else {
-      comaList.innerHTML = `<div class="resource-item"><span class="resource-name">Aucun coma enregistré 🎉</span></div>`;
     }
 
-    document.getElementById('player-modal').classList.remove('hidden');
+    const modal = document.getElementById('player-modal');
+    if (modal) modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
   }
 
   // 6. On-Demand / Lazy Load Username Resolver (Visible Page Only)
@@ -629,83 +787,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return null;
   }
-
-  // Modern Category & Sub-chips Engine
-  const CATEGORY_GROUPS = {
-    time: {
-      label: 'Temps & Survie',
-      items: [
-        { key: 'play_time', label: 'Temps de Jeu' },
-        { key: 'leave_game', label: 'Connexions' },
-        { key: 'time_since_death', label: 'Survie Actuelle' },
-        { key: 'time_since_rest', label: 'Temps Sans Dormir' }
-      ]
-    },
-    mining: {
-      label: 'Minage & Minerais',
-      items: [
-        { key: 'total_mined', label: 'Total Miné' },
-        { key: 'mined_diamond', label: 'Diamants' },
-        { key: 'mined_debris', label: 'Netherite' },
-        { key: 'mined_emerald', label: 'Émeraudes' },
-        { key: 'mined_gold', label: 'Or' },
-        { key: 'mined_iron', label: 'Fer' },
-        { key: 'mined_copper', label: 'Cuivre' },
-        { key: 'mined_lapis', label: 'Lapis-Lazuli' },
-        { key: 'mined_redstone', label: 'Redstone' },
-        { key: 'mined_coal', label: 'Charbon' },
-        { key: 'mined_stone', label: 'Pierre & Abîme' },
-        { key: 'mined_obsidian', label: 'Obsidienne' },
-        { key: 'mined_wood', label: 'Bois Coupé' }
-      ]
-    },
-    combat: {
-      label: 'Combat & Armes',
-      items: [
-        { key: 'damage_dealt', label: 'Dégâts Infligés' },
-        { key: 'damage_taken', label: 'Dégâts Subis' },
-        { key: 'player_kills', label: 'Joueurs Tués (PvP)' },
-        { key: 'mob_kills', label: 'Mobs Tués' },
-        { key: 'deaths', label: 'Morts Total' },
-        { key: 'totem_popped', label: 'Totems Pops' },
-        { key: 'used_sword', label: 'Coups d\'Épée' },
-        { key: 'used_mace', label: 'Coups de Masse' },
-        { key: 'used_axe', label: 'Coups de Hache' },
-        { key: 'used_bow', label: 'Arcs & Arbalètes' },
-        { key: 'used_trident', label: 'Lancers Trident' },
-        { key: 'used_shield', label: 'Parades Bouclier' },
-        { key: 'golden_apple', label: 'Pommes Dorées' },
-        { key: 'enchanted_golden_apple', label: 'Pommes Cheat' },
-        { key: 'ender_pearl', label: 'Perles de l\'Ender' }
-      ]
-    },
-    movement: {
-      label: 'Déplacements',
-      items: [
-        { key: 'distance_walked', label: 'Marche / Sprint' },
-        { key: 'fly_one_cm', label: 'Vol Élytres' },
-        { key: 'swim_one_cm', label: 'Nage' },
-        { key: 'boat_one_cm', label: 'Bateau' },
-        { key: 'horse_one_cm', label: 'Cheval' },
-        { key: 'jump', label: 'Sauts' }
-      ]
-    },
-    crafting: {
-      label: 'Artisanat & Commerce',
-      items: [
-        { key: 'traded_with_villager', label: 'Échanges Villageois' },
-        { key: 'animals_bred', label: 'Animaux Reproduits' },
-        { key: 'fish_caught', label: 'Poissons Pêchés' },
-        { key: 'enchant_item', label: 'Enchantements' },
-        { key: 'total_crafted', label: 'Items Craftés' },
-        { key: 'total_picked_up', label: 'Items Ramassés' },
-        { key: 'drop', label: 'Items Jetés' }
-      ]
-    }
-  };
-
-  let activeCategoryGroup = 'time';
-  let activeCategoryKey = 'play_time';
 
   function initCategoryUI() {
     const mainTabsContainer = document.getElementById('category-main-tabs');
@@ -836,386 +917,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Modal Tabs Navigation
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    document.querySelectorAll('.modal-tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.modal-tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
 
         btn.classList.add('active');
         const tabId = btn.getAttribute('data-tab');
-        document.getElementById(tabId).classList.add('active');
+        const targetPane = document.getElementById(tabId);
+        if (targetPane) targetPane.classList.add('active');
       });
     });
 
-    // =========================================
-    // VIEW SWITCHER: Stats vs Coma Logs
-    // =========================================
-    document.getElementById('view-tab-stats').addEventListener('click', () => {
-      document.getElementById('view-tab-stats').classList.add('active');
-      document.getElementById('view-tab-coma').classList.remove('active');
-      document.getElementById('stats-view-section').classList.remove('hidden');
-      document.getElementById('coma-view-section').classList.add('hidden');
-      document.getElementById('stats-overview').style.display = '';
-    });
-
-    document.getElementById('view-tab-coma').addEventListener('click', () => {
-      document.getElementById('view-tab-coma').classList.add('active');
-      document.getElementById('view-tab-stats').classList.remove('active');
-      document.getElementById('coma-view-section').classList.remove('hidden');
-      document.getElementById('stats-view-section').classList.add('hidden');
-      document.getElementById('stats-overview').style.display = 'none';
-      updateComaTable();
-    });
-
-    // =========================================
-    // COMA VIEW: Sub-Tabs & Controls
-    // =========================================
-    document.querySelectorAll('[data-coma-mode]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('[data-coma-mode]').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        comaMode = btn.getAttribute('data-coma-mode');
-        comaPage = 1;
-
-        // Toggle feed filters visibility
-        const feedFilters = document.getElementById('coma-feed-filters');
-        if (feedFilters) {
-          feedFilters.style.display = comaMode === 'feed' ? 'flex' : 'flex';
-        }
-
-        updateComaTable();
-      });
-    });
-
-    document.getElementById('coma-search').addEventListener('input', () => {
-      comaPage = 1;
-      updateComaTable();
-    });
-
-    document.getElementById('coma-category-filter').addEventListener('change', () => {
-      comaPage = 1;
-      updateComaTable();
-    });
-
-    document.getElementById('coma-sort-order').addEventListener('change', () => {
-      comaPage = 1;
-      updateComaTable();
-    });
-
-    document.getElementById('coma-btn-prev').addEventListener('click', () => {
-      if (comaPage > 1) {
-        comaPage--;
-        updateComaTable();
-      }
-    });
-
-    document.getElementById('coma-btn-next').addEventListener('click', () => {
-      let maxItems = 0;
-      if (comaMode === 'attackers') maxItems = filteredComaAttackers.length;
-      else if (comaMode === 'victims') maxItems = filteredComaVictims.length;
-      else maxItems = filteredComaEvents.length;
-
-      const totalPages = Math.ceil(maxItems / comaPageSize) || 1;
-      if (comaPage < totalPages) {
-        comaPage++;
-        updateComaTable();
-      }
-    });
   }
 
   function closeModal() {
     document.getElementById('player-modal').classList.add('hidden');
+    document.body.style.overflow = '';
   }
-
-  // =========================================
-  // 8. COMA LOGS & RANKINGS ENGINE
-  // =========================================
-  let comaMode = 'attackers'; // 'attackers', 'victims', 'feed'
-  let comaPage = 1;
-  const comaPageSize = 25;
-  let filteredComaEvents = [];
-  let filteredComaAttackers = [];
-  let filteredComaVictims = [];
 
   function initComaData() {
     if (typeof COMA_DATA === 'undefined') return;
 
-    const totalEl = document.getElementById('total-coma-pill');
-    if (totalEl) totalEl.textContent = formatNumber(COMA_DATA.totalEvents);
-
     const cardEl = document.getElementById('total-comas-card');
     if (cardEl) cardEl.textContent = formatNumber(COMA_DATA.totalEvents);
-  }
-
-  function updateComaTable() {
-    if (typeof COMA_DATA === 'undefined') return;
-
-    const search = document.getElementById('coma-search').value.toLowerCase().trim();
-    const categoryFilter = document.getElementById('coma-category-filter').value;
-    const sortOrder = document.getElementById('coma-sort-order').value;
-
-    const thead = document.getElementById('coma-table-head');
-    const tbody = document.getElementById('coma-table-body');
-    const modeTitle = document.getElementById('coma-mode-title');
-
-    tbody.innerHTML = '';
-
-    // MODE 1: ATTACKERS (BOURREAUX PvP)
-    if (comaMode === 'attackers') {
-      if (modeTitle) modeTitle.textContent = "Classement Complet des Bourreaux PvP";
-
-      thead.innerHTML = `
-        <tr>
-          <th style="width: 70px;">#</th>
-          <th class="col-player">Joueur (Bourreau PvP)</th>
-          <th>Comas Infligés</th>
-          <th>% du total PvP</th>
-          <th>Action</th>
-        </tr>
-      `;
-
-      filteredComaAttackers = (COMA_DATA.topAttackers || []).filter(item => {
-        if (search && !item.name.toLowerCase().includes(search)) return false;
-        return true;
-      });
-
-      if (sortOrder === 'oldest') {
-        filteredComaAttackers.sort((a, b) => a.count - b.count);
-      } else {
-        filteredComaAttackers.sort((a, b) => b.count - a.count);
-      }
-
-      const totalPages = Math.ceil(filteredComaAttackers.length / comaPageSize) || 1;
-      if (comaPage > totalPages) comaPage = totalPages;
-      if (comaPage < 1) comaPage = 1;
-
-      const start = (comaPage - 1) * comaPageSize;
-      const pageItems = filteredComaAttackers.slice(start, start + comaPageSize);
-
-      document.getElementById('coma-showing-count').textContent = filteredComaAttackers.length;
-      document.getElementById('coma-page-indicator').textContent = `Page ${comaPage} / ${totalPages}`;
-      document.getElementById('coma-btn-prev').disabled = comaPage <= 1;
-      document.getElementById('coma-btn-next').disabled = comaPage >= totalPages;
-
-      if (pageItems.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-muted);">Aucun bourreau trouvé.</td></tr>`;
-        return;
-      }
-
-      const totalPvpComas = filteredComaAttackers.reduce((acc, curr) => acc + curr.count, 0) || 1;
-
-      pageItems.forEach((item, idx) => {
-        const rank = start + idx + 1;
-        let rankBadge = 'rank-other';
-        if (rank === 1) rankBadge = 'rank-1';
-        else if (rank === 2) rankBadge = 'rank-2';
-        else if (rank === 3) rankBadge = 'rank-3';
-
-        const pct = ((item.count / totalPvpComas) * 100).toFixed(1);
-        const tr = document.createElement('tr');
-
-        tr.innerHTML = `
-          <td style="text-align:center;">
-            <span class="rank-badge ${rankBadge}">${rank}</span>
-          </td>
-          <td>
-            <div class="player-cell">
-              <img class="player-avatar" src="https://mc-heads.net/avatar/${escapeHtml(item.name)}/64" alt="" loading="lazy" onerror="this.src='https://crafatar.com/avatars/steve?size=64'" style="width:32px; height:32px;">
-              <span class="player-name" style="font-weight: 700;">${escapeHtml(item.name)}</span>
-            </div>
-          </td>
-          <td>
-            <span style="color: #ff4757; font-weight: 800; font-family: var(--font-mono); font-size: 1.05rem;">${formatNumber(item.count)}</span>
-          </td>
-          <td>
-            <div style="display:flex; align-items:center; gap:0.5rem;">
-              <div style="width:80px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
-                <div style="width:${pct}%; height:100%; background:#ff4757;"></div>
-              </div>
-              <span style="font-size:0.85rem; color:var(--text-muted); font-family:var(--font-mono);">${pct}%</span>
-            </div>
-          </td>
-          <td>
-            <button class="btn btn-secondary btn-detail" onclick="document.getElementById('coma-search').value='${escapeHtml(item.name)}'; document.getElementById('coma-tab-feed').click();" style="padding:0.35rem 0.75rem; font-size:0.8rem;">
-              Voir Logs
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-      return;
-    }
-
-    // MODE 2: VICTIMS (COMAS SUBIS)
-    if (comaMode === 'victims') {
-      if (modeTitle) modeTitle.textContent = "Classement Complet des Victimes (Comas Subis)";
-
-      thead.innerHTML = `
-        <tr>
-          <th style="width: 70px;">#</th>
-          <th class="col-player">Joueur (Victime en Coma)</th>
-          <th>Comas Subis</th>
-          <th>% du total</th>
-          <th>Action</th>
-        </tr>
-      `;
-
-      filteredComaVictims = (COMA_DATA.topVictims || []).filter(item => {
-        if (search && !item.name.toLowerCase().includes(search)) return false;
-        return true;
-      });
-
-      if (sortOrder === 'oldest') {
-        filteredComaVictims.sort((a, b) => a.count - b.count);
-      } else {
-        filteredComaVictims.sort((a, b) => b.count - a.count);
-      }
-
-      const totalPages = Math.ceil(filteredComaVictims.length / comaPageSize) || 1;
-      if (comaPage > totalPages) comaPage = totalPages;
-      if (comaPage < 1) comaPage = 1;
-
-      const start = (comaPage - 1) * comaPageSize;
-      const pageItems = filteredComaVictims.slice(start, start + comaPageSize);
-
-      document.getElementById('coma-showing-count').textContent = filteredComaVictims.length;
-      document.getElementById('coma-page-indicator').textContent = `Page ${comaPage} / ${totalPages}`;
-      document.getElementById('coma-btn-prev').disabled = comaPage <= 1;
-      document.getElementById('coma-btn-next').disabled = comaPage >= totalPages;
-
-      if (pageItems.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-muted);">Aucune victime trouvée.</td></tr>`;
-        return;
-      }
-
-      const totalComaEvents = COMA_DATA.totalEvents || 1;
-
-      pageItems.forEach((item, idx) => {
-        const rank = start + idx + 1;
-        let rankBadge = 'rank-other';
-        if (rank === 1) rankBadge = 'rank-1';
-        else if (rank === 2) rankBadge = 'rank-2';
-        else if (rank === 3) rankBadge = 'rank-3';
-
-        const pct = ((item.count / totalComaEvents) * 100).toFixed(1);
-        const tr = document.createElement('tr');
-
-        tr.innerHTML = `
-          <td style="text-align:center;">
-            <span class="rank-badge ${rankBadge}">${rank}</span>
-          </td>
-          <td>
-            <div class="player-cell">
-              <img class="player-avatar" src="https://mc-heads.net/avatar/${escapeHtml(item.name)}/64" alt="" loading="lazy" onerror="this.src='https://crafatar.com/avatars/steve?size=64'" style="width:32px; height:32px;">
-              <span class="player-name" style="font-weight: 700;">${escapeHtml(item.name)}</span>
-            </div>
-          </td>
-          <td>
-            <span style="color: #ffa502; font-weight: 800; font-family: var(--font-mono); font-size: 1.05rem;">${formatNumber(item.count)}</span>
-          </td>
-          <td>
-            <div style="display:flex; align-items:center; gap:0.5rem;">
-              <div style="width:80px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
-                <div style="width:${pct}%; height:100%; background:#ffa502;"></div>
-              </div>
-              <span style="font-size:0.85rem; color:var(--text-muted); font-family:var(--font-mono);">${pct}%</span>
-            </div>
-          </td>
-          <td>
-            <button class="btn btn-secondary btn-detail" onclick="document.getElementById('coma-search').value='${escapeHtml(item.name)}'; document.getElementById('coma-tab-feed').click();" style="padding:0.35rem 0.75rem; font-size:0.8rem;">
-              Voir Logs
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-      return;
-    }
-
-    // MODE 3: CHRONOLOGICAL FEED (LOGS)
-    if (modeTitle) modeTitle.textContent = "Journal Historique Chronologique";
-
-    thead.innerHTML = `
-      <tr>
-        <th style="width: 70px;">#</th>
-        <th style="width: 180px;">Date & Heure</th>
-        <th class="col-player">Joueur en Coma</th>
-        <th>Cause / Attaquant</th>
-        <th style="width: 160px;">Catégorie</th>
-      </tr>
-    `;
-
-    filteredComaEvents = COMA_DATA.events.filter(ev => {
-      if (categoryFilter !== 'all' && ev.category !== categoryFilter) return false;
-      if (search) {
-        const victimMatch = ev.victim.toLowerCase().includes(search);
-        const causeMatch = ev.cause.toLowerCase().includes(search);
-        if (!victimMatch && !causeMatch) return false;
-      }
-      return true;
-    });
-
-    if (sortOrder === 'oldest') {
-      filteredComaEvents.sort((a, b) => a.dateTime.localeCompare(b.dateTime));
-    } else {
-      filteredComaEvents.sort((a, b) => b.dateTime.localeCompare(a.dateTime));
-    }
-
-    const totalPages = Math.ceil(filteredComaEvents.length / comaPageSize) || 1;
-    if (comaPage > totalPages) comaPage = totalPages;
-    if (comaPage < 1) comaPage = 1;
-
-    const start = (comaPage - 1) * comaPageSize;
-    const pageEvents = filteredComaEvents.slice(start, start + comaPageSize);
-
-    document.getElementById('coma-showing-count').textContent = filteredComaEvents.length;
-    document.getElementById('coma-page-indicator').textContent = `Page ${comaPage} / ${totalPages}`;
-    document.getElementById('coma-btn-prev').disabled = comaPage <= 1;
-    document.getElementById('coma-btn-next').disabled = comaPage >= totalPages;
-
-    if (pageEvents.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-muted);">Aucun événement de coma trouvé.</td></tr>`;
-      return;
-    }
-
-    pageEvents.forEach((ev, idx) => {
-      const globalIdx = start + idx + 1;
-      const tr = document.createElement('tr');
-
-      let catColor = 'var(--text-muted)';
-      if (ev.category === 'PvP (Joueur)') { catColor = '#ff4757'; }
-      else if (ev.category === 'Mob / Entité') { catColor = '#ffa502'; }
-      else if (ev.category === 'Chute') { catColor = '#ff6348'; }
-      else if (ev.category === 'Noyade') { catColor = '#1e90ff'; }
-      else if (ev.category === 'Lave / Feu') { catColor = '#ff4500'; }
-
-      tr.innerHTML = `
-        <td style="text-align:center;">
-          <span class="rank-badge rank-other">${globalIdx}</span>
-        </td>
-        <td>
-          <span style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted);">${escapeHtml(ev.date)}</span><br>
-          <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-dim);">${escapeHtml(ev.time)}</span>
-        </td>
-        <td>
-          <div class="player-cell">
-            <img class="player-avatar" src="https://mc-heads.net/avatar/${escapeHtml(ev.victim)}/64" alt="" loading="lazy" onerror="this.src='https://crafatar.com/avatars/steve?size=64'" style="width:32px; height:32px;">
-            <span class="player-name" style="font-weight: 700;">${escapeHtml(ev.victim)}</span>
-          </div>
-        </td>
-        <td style="color: var(--text-main); font-size: 0.9rem;">${escapeHtml(ev.cause)}</td>
-        <td>
-          <span style="
-            display: inline-flex; align-items: center; gap: 0.4rem;
-            background: ${catColor}22; color: ${catColor};
-            border: 1px solid ${catColor}44;
-            padding: 0.25rem 0.7rem; border-radius: 50px;
-            font-size: 0.8rem; font-weight: 600;
-          ">${escapeHtml(ev.category)}</span>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
   }
 
   // Get coma events for a specific player name
@@ -1227,8 +952,22 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function getPlayerComaCount(playerName) {
-    if (typeof COMA_DATA === 'undefined' || !COMA_DATA.playerComaCounts) return 0;
-    return COMA_DATA.playerComaCounts[playerName] || 0;
+    if (typeof COMA_DATA === 'undefined') return 0;
+    if (!playerName) return 0;
+
+    const victimCounts = COMA_DATA.victimCounts || {};
+    if (typeof victimCounts === 'object' && victimCounts[playerName]) {
+      return victimCounts[playerName];
+    }
+
+    const normalizedName = playerName.toLowerCase().trim();
+    for (const [name, count] of Object.entries(victimCounts)) {
+      if (name.toLowerCase().trim() === normalizedName) {
+        return count;
+      }
+    }
+
+    return 0;
   }
 
   // Helper Utility Functions

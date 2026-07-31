@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=1001">
+  <link rel="stylesheet" href="style.css?v=1002">
 </head>
 <body>
   <!-- Header / Hero Section -->
@@ -26,10 +26,6 @@
       <div class="view-switcher-container">
         <button class="view-tab-btn active" id="view-tab-stats">
           Leaderboard & Stats
-        </button>
-        <button class="view-tab-btn" id="view-tab-coma">
-          Journal des Comas (Kutils Logs)
-          <span class="badge-count-pill" id="total-coma-pill">3 887</span>
         </button>
       </div>
 
@@ -61,14 +57,6 @@
 
         <div class="stat-card glass-card card-glow">
           <div class="stat-info">
-            <span class="stat-label">Totems Pops</span>
-            <span class="stat-value" id="total-totems">--</span>
-            <span class="stat-sublabel">Moyenne: <strong id="avg-totems">--</strong> / joueur</span>
-          </div>
-        </div>
-
-        <div class="stat-card glass-card card-glow">
-          <div class="stat-info">
             <span class="stat-label">Comas Enregistrés</span>
             <span class="stat-value" id="total-comas-card">3 887</span>
             <span class="stat-sublabel">Logs [Kutils] [ComaLog]</span>
@@ -88,6 +76,7 @@
           <button class="cat-tab-btn active" data-cat-group="time">Temps & Survie</button>
           <button class="cat-tab-btn" data-cat-group="mining">Minage & Minerais</button>
           <button class="cat-tab-btn" data-cat-group="combat">Combat & Armes</button>
+          <button class="cat-tab-btn" data-cat-group="coma">Comas</button>
           <button class="cat-tab-btn" data-cat-group="movement">Déplacements</button>
           <button class="cat-tab-btn" data-cat-group="crafting">Artisanat & Commerce</button>
         </div>
@@ -136,15 +125,11 @@
       <!-- Leaderboard Table -->
       <div class="leaderboard-table-container glass-card">
         <table class="leaderboard-table">
-          <thead>
+          <thead id="leaderboard-head">
             <tr>
               <th class="col-rank">#</th>
               <th class="col-player">Joueur</th>
               <th class="col-main-stat" id="table-stat-title">Temps de Jeu</th>
-              <th class="col-sub">Blocs Minés</th>
-              <th class="col-sub">Diamants</th>
-              <th class="col-sub">Mobs Tués</th>
-              <th class="col-sub">Morts</th>
               <th class="col-diff">vs Moyenne</th>
               <th class="col-action">Détails</th>
             </tr>
@@ -163,71 +148,6 @@
       </div>
     </div>
 
-    <!-- SECTION 2: Coma Logs & Rankings View -->
-    <div id="coma-view-section" class="view-section hidden">
-      <!-- Coma Sub-Tabs -->
-      <div class="modal-tabs" style="margin-bottom: 1.5rem;">
-        <button class="tab-btn active" id="coma-tab-attackers" data-coma-mode="attackers">Classement Bourreaux (Comas Infligés)</button>
-        <button class="tab-btn" id="coma-tab-victims" data-coma-mode="victims">Classement Victimes (Comas Subis)</button>
-        <button class="tab-btn" id="coma-tab-feed" data-coma-mode="feed">Journal Historique (3 887 Events)</button>
-      </div>
-
-      <!-- Controls for Rankings / Feed -->
-      <div class="controls-panel glass-card">
-        <div class="search-box">
-          <span class="search-icon">Search</span>
-          <input type="text" id="coma-search" placeholder="Rechercher un pseudo..." autocomplete="off">
-        </div>
-
-        <div class="filter-group" id="coma-feed-filters">
-          <div class="select-wrapper">
-            <label for="coma-category-filter">Type de cause :</label>
-            <select id="coma-category-filter">
-              <option value="all" selected>Toutes les causes</option>
-              <option value="PvP (Joueur)">PvP (Tué par un joueur)</option>
-              <option value="Mob / Entité">Mobs & Entités</option>
-              <option value="Chute">Chutes</option>
-              <option value="Noyade">Noyades</option>
-              <option value="Lave / Feu">Lave & Feu</option>
-              <option value="Environnement">Autre Environnement</option>
-            </select>
-          </div>
-
-          <div class="select-wrapper">
-            <label for="coma-sort-order">Ordre :</label>
-            <select id="coma-sort-order">
-              <option value="newest" selected>Plus récents / Plus grands</option>
-              <option value="oldest">Plus anciens / Plus petits</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="results-header">
-        <div class="results-count">
-          Affichage de <span id="coma-showing-count">0</span> entrées (<span id="coma-mode-title">Classement des Bourreaux</span>)
-        </div>
-      </div>
-
-      <!-- Coma Table Grid -->
-      <div class="leaderboard-table-container glass-card">
-        <table class="leaderboard-table">
-          <thead id="coma-table-head">
-            <!-- Dynamically populated based on active sub-tab -->
-          </thead>
-          <tbody id="coma-table-body">
-            <!-- Dynamically populated -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Coma Pagination Controls -->
-      <div class="pagination-container">
-        <button id="coma-btn-prev" class="btn btn-secondary" disabled>&laquo; Précédent</button>
-        <span id="coma-page-indicator">Page 1 / 1</span>
-        <button id="coma-btn-next" class="btn btn-secondary">Suivant &raquo;</button>
-      </div>
-    </div>
   </main>
 
   <!-- Player Detailed Modal -->
@@ -239,17 +159,15 @@
         <img id="modal-player-skin" src="" alt="Skin Joueur" class="modal-skin-img">
         <div class="modal-player-info">
           <h2 id="modal-player-name">Player</h2>
-          <span id="modal-player-uuid" class="uuid-badge">UUID</span>
           <div class="modal-quick-badges" id="modal-player-badges"></div>
         </div>
       </div>
 
       <div class="modal-tabs">
-        <button class="tab-btn active" data-tab="tab-overview">Vue d'ensemble</button>
-        <button class="tab-btn" data-tab="tab-coma-history">🏥 Comas (<span id="modal-coma-count">0</span>)</button>
-        <button class="tab-btn" data-tab="tab-mined">⛏️ Minage & Ressources</button>
-        <button class="tab-btn" data-tab="tab-combat">⚔️ Mobs & Combat</button>
-        <button class="tab-btn" data-tab="tab-exploration">🏃 Distance & Divers</button>
+        <button class="tab-btn modal-tab-btn active" data-tab="tab-overview">Vue d'ensemble</button>
+        <button class="tab-btn modal-tab-btn" data-tab="tab-mined">⛏️ Minage & Ressources</button>
+        <button class="tab-btn modal-tab-btn" data-tab="tab-combat">⚔️ Mobs & Combat</button>
+        <button class="tab-btn modal-tab-btn" data-tab="tab-exploration">🏃 Distance & Divers</button>
       </div>
 
       <div class="modal-tab-content">
@@ -299,13 +217,12 @@
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- Tab Player Coma History -->
-        <div id="tab-coma-history" class="tab-pane">
-          <h3 class="tab-section-title">Historique des Comas du Joueur</h3>
-          <div class="resource-grid" id="modal-coma-list">
-            <!-- Dynamically populated -->
+          <div class="modal-summary-card">
+            <div class="summary-card-header">
+              <span class="summary-card-title">Statistiques de la catégorie active</span>
+              <span class="summary-card-chip">Live</span>
+            </div>
+            <div class="resource-grid" id="modal-category-stats-list"></div>
           </div>
         </div>
 
@@ -337,8 +254,8 @@
   </footer>
 
   <!-- Include compiled data scripts -->
-  <script src="data.js?v=1001"></script>
-  <script src="coma_data.js?v=1001"></script>
-  <script src="app.js?v=1001"></script>
+  <script src="data.js?v=1002"></script>
+  <script src="coma_data.js?v=1002"></script>
+  <script src="app.js?v=1002"></script>
 </body>
 </html>
